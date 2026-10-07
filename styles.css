@@ -593,3 +593,12 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 #rulesView .bottom-button{
   margin-top:20px !important;
 }
+
+
+/* RULES SPACING */
+#rulesView .back-btn{
+  margin-bottom:32px !important;
+}
+#rulesView .page-title{
+  margin:0 0 32px !important;
+}

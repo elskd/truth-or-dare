@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090909">
 <title>Только между нами</title>
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body>
 <div id="loader" class="loader">
@@ -20,6 +20,29 @@
   <div id="playersList" class="players-list"></div>
   <button class="add-player" id="addPlayer" aria-label="Добавить игрока">+</button>
   <button class="primary" id="startSetup"><span class="btn-label">Начать игру</span><span class="btn-icon">↗</span></button>
+</section>
+
+<section id="setupView" class="view">
+  <button class="back-btn" id="setupBack">‹</button>
+  <h2 class="page-title">Установи правила</h2>
+
+  <div class="section-label">Режим</div>
+  <div class="mode-grid" id="modeGrid">
+    <button class="mode-card active" data-mode="classic"><b>Микс</b><small>Всего понемногу</small></button>
+    <button class="mode-card" data-mode="spicy"><b>Романтика</b><small>Больше чувств</small></button>
+    <button class="mode-card" data-mode="wild"><b>Флирт</b><small>Больше искры</small></button>
+    <button class="mode-card" data-mode="inferno"><b>Страсть</b><small>Без фильтров</small></button>
+  </div>
+
+  <div class="section-label count-label">Количество вопросов</div>
+  <div class="count-grid" id="countGrid">
+    <button class="count-btn active" data-count="20">20</button>
+    <button class="count-btn" data-count="50">50</button>
+    <button class="count-btn" data-count="75">75</button>
+    <button class="count-btn" data-count="100">100</button>
+  </div>
+
+  <button class="primary bottom-button" id="launchGame"><span class="btn-label">Запустить игру</span><span class="btn-icon">→</span></button>
 </section>
 
 <section id="settingsView" class="view">
@@ -77,6 +100,6 @@
   </div>
 </section>
 </main>
-<script src="app.js?v=26"></script>
+<script src="app.js?v=27"></script>
 </body>
 </html>

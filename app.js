@@ -562,59 +562,59 @@ initAdminNavigation();function renderAdmin(){
 
   let draggedId=null;
   let draggedCard=null;
-  let dragMoved=false;
+  let lastTarget=null;
 
-  const reorderToTarget=(targetCard)=>{
-    const targetId=Number(targetCard.dataset.dragId);
-    if(!draggedId||draggedId===targetId)return;
-    const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode))
-      .sort((x,y)=>getQuestionOrder(x,adminMode)-getQuestionOrder(y,adminMode)||Number(x.id)-Number(y.id));
-    const from=items.findIndex(q=>q.id===draggedId),to=items.findIndex(q=>q.id===targetId);
-    if(from<0||to<0)return;
-    const [moved]=items.splice(from,1);items.splice(to,0,moved);
-    items.forEach((q,i)=>{if(!q.order)q.order={};q.order[adminMode]=i+1});
-    saveQuestionBank();renderAdmin();
+  const finishReorder=()=>{
+    if(!draggedId)return;
+    const cards=[...list.querySelectorAll("[data-drag-id]")];
+    const orderedIds=cards.map(card=>Number(card.dataset.dragId));
+    const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode));
+    orderedIds.forEach((id,i)=>{
+      const q=items.find(x=>x.id===id);
+      if(q){if(!q.order)q.order={};q.order[adminMode]=i+1;}
+    });
+    normalizeQuestionOrder(questionBank);
+    saveQuestionBank();
+    if(draggedCard)draggedCard.classList.remove("dragging");
+    draggedId=null;draggedCard=null;lastTarget=null;
+    renderAdmin();
   };
 
   list.querySelectorAll("[data-drag-id]").forEach(card=>{
-    card.ondragstart=e=>{draggedId=Number(card.dataset.dragId);draggedCard=card;card.classList.add("dragging");e.dataTransfer.effectAllowed="move"};
-    card.ondragend=()=>{card.classList.remove("dragging");draggedId=null;draggedCard=null};
-    card.ondragover=e=>e.preventDefault();
-    card.ondrop=e=>{e.preventDefault();reorderToTarget(card)};
-
     card.onpointerdown=e=>{
-      if(e.pointerType==="mouse" && e.button!==0)return;
+      if(e.pointerType==="mouse"&&e.button!==0)return;
       draggedId=Number(card.dataset.dragId);
       draggedCard=card;
-      dragMoved=false;
-      card.setPointerCapture?.(e.pointerId);
+      lastTarget=null;
       card.classList.add("dragging");
+      card.setPointerCapture?.(e.pointerId);
     };
-    card.onpointermove=e=>{
-      if(!draggedId||!draggedCard)return;
-      if(Math.abs(e.movementY||0)>1)dragMoved=true;
-      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-drag-id]");
-      if(target&&target!==draggedCard)reorderToTarget(target);
-    };
-    card.onpointerup=e=>{
-      if(draggedCard){
-        draggedCard.classList.remove("dragging");
-        try{card.releasePointerCapture?.(e.pointerId)}catch(_){}
-      }
-      draggedId=null;draggedCard=null;
-    };
-    card.onpointercancel=()=>{if(draggedCard)draggedCard.classList.remove("dragging");draggedId=null;draggedCard=null};
-  });
 
-  list.querySelectorAll("[data-delete-id]").forEach(b=>b.onclick=()=>{
-    const id=Number(b.dataset.deleteId);
-    const q=questionBank.find(x=>x.id===id);
-    if(!q)return;
-    if(!confirm("Удалить этот вопрос?"))return;
-    questionBank=questionBank.filter(x=>x.id!==id);
-    normalizeQuestionOrder(questionBank);
-    saveQuestionBank();
-    renderAdmin();
+    card.onpointermove=e=>{
+      if(!draggedCard||draggedCard!==card)return;
+      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-drag-id]");
+      if(!target||target===draggedCard||target.parentElement!==list)return;
+      if(target===lastTarget)return;
+      lastTarget=target;
+      const rect=target.getBoundingClientRect();
+      const insertAfter=e.clientY>rect.top+rect.height/2;
+      if(insertAfter) target.after(draggedCard);
+      else target.before(draggedCard);
+    };
+
+    card.onpointerup=e=>{
+      if(draggedCard===card){
+        try{card.releasePointerCapture?.(e.pointerId)}catch(_){}
+        finishReorder();
+      }
+    };
+    card.onpointercancel=()=>{
+      if(draggedCard===card){
+        card.classList.remove("dragging");
+        draggedId=null;draggedCard=null;lastTarget=null;
+        renderAdmin();
+      }
+    };
   });
 
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{

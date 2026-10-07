@@ -156,3 +156,26 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 #turnView .choice-title{margin-top:0}
 #turnView .choice-subtitle{margin-top:8px}
 #settingsView .page-title{white-space:nowrap}
+
+/* FINAL FIX — exact requested vertical rhythm */
+#settingsView .page-title{
+  white-space:nowrap !important;
+  display:block;
+  width:max-content;
+  max-width:none;
+  font-size:34px !important;
+  line-height:38px !important;
+}
+#turnView .turn-meta{
+  margin-top:30px !important;
+}
+#turnView .turn-player{
+  margin-top:8px !important;
+  margin-bottom:0 !important;
+  font-size:34px !important;
+  line-height:38px !important;
+}
+#turnView .choice-grid{
+  margin-top:40px !important;
+  margin-bottom:28px !important;
+}

@@ -93,3 +93,23 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .player-row .gender,.player-row button.gender{display:none!important}
 .player-row .remove-player{display:block!important;grid-column:auto!important}
 .name-input{display:block!important;height:42px!important;line-height:42px!important;margin:0!important}
+
+/* Alignment system: every control uses equal internal spacing and centered content */
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;padding:0!important;line-height:1}
+.back-btn{display:grid!important;place-items:center!important;padding:0!important;line-height:1!important}
+.primary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;padding:0 20px!important;text-align:left!important;line-height:1!important}
+.primary span{float:none!important;display:grid!important;place-items:center!important;width:24px;height:24px;margin:0!important;line-height:1!important}
+.next-button{justify-content:center!important}
+.next-button span{margin-left:8px!important}
+.add-player{display:grid!important;place-items:center!important;padding:0!important;line-height:1!important}
+.mode-card{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;padding:17px!important}
+.count-btn{display:grid!important;place-items:center!important;padding:0!important;line-height:1!important}
+.choice-card{padding:20px!important;gap:0!important}
+.choice-card b,.choice-card small{margin-left:0!important;margin-right:0!important;text-align:center}
+.secondary{display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;padding:0 20px!important;line-height:1!important}
+.question-actions .primary,.question-actions .secondary{height:62px;min-height:62px}
+.count-badge{align-items:center!important;padding:10px 16px!important;line-height:1!important}
+.count-badge b{line-height:1!important}
+.player-row{grid-template-columns:28px minmax(0,1fr) 28px!important;column-gap:10px!important}
+.remove-player{width:28px;height:42px;display:grid!important;place-items:center!important;padding:0!important;line-height:1!important}
+.name-input{padding:0 2px!important}

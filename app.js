@@ -214,7 +214,12 @@ function pick(choice){
   let pool=eligible.filter(c=>c.level===currentLevel);
   if(choice==="truth" || choice==="dare"){
     const typed=pool.filter(c=>c.type===choice);
-    if(typed.length)pool=typed;
+    if(!typed.length){
+      const typedAnyLevel=eligible.filter(c=>c.type===choice);
+      if(typedAnyLevel.length) pool=typedAnyLevel;
+    }else{
+      pool=typed;
+    }
   }
 
   const next=weightedPick(pool);

@@ -462,9 +462,8 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 /* COMPACT GENDER CONTROL — right edge */
 .player-row{
-  grid-template-columns:28px minmax(0,1fr) 30px;
+  grid-template-columns:28px minmax(0,1fr) 28px 30px;
   column-gap:10px;
-  position:relative;
 }
 .gender-select{
   width:30px !important;
@@ -481,16 +480,8 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
   -webkit-appearance:auto !important;
 }
 .gender-select:focus{color:var(--milk) !important;outline:none}
-.player-row .remove-player{
-  position:absolute;
-  right:0;
-  top:13px;
-  z-index:2;
-}
-.player-row .remove-player ~ .gender-select{
-  margin-right:30px;
-}
+.remove-player{width:28px;height:42px}
 @media(max-width:370px){
-  .player-row{grid-template-columns:24px minmax(0,1fr) 28px;column-gap:6px}
+  .player-row{grid-template-columns:24px minmax(0,1fr) 24px 28px;column-gap:6px}
   .gender-select{width:28px !important;font-size:13px !important}
 }

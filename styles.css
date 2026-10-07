@@ -408,3 +408,22 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
   box-sizing:border-box !important;
 }
 .admin-add-btn{display:block !important;width:100% !important;box-sizing:border-box !important}
+
+
+/* SETUP SCREEN — restore original spacing rhythm */
+#setupView .back-btn{
+  margin-bottom:32px !important;
+}
+#setupView .page-title{
+  margin:0 0 48px !important;
+  white-space:nowrap !important;
+}
+#setupView .section-label{
+  margin-bottom:16px !important;
+}
+#setupView .count-label{
+  margin-top:44px !important;
+}
+#setupView .bottom-button{
+  margin-top:28px !important;
+}

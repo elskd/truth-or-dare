@@ -657,7 +657,7 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 
 /* QUESTION ORDER */
-.admin-drag{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;color:var(--muted);font-size:20px;line-height:1;cursor:grab;touch-action:none}.admin-card.dragging{opacity:.45}
+.admin-card.dragging{opacity:.45}
 
 
 /* ADMIN ACTIONS */
@@ -665,11 +665,11 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 
 /* DRAG HANDLE */
-.admin-drag{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important;cursor:grab!important;-webkit-user-drag:none!important}
+
 
 
 .admin-card-head{position:relative}.admin-order-buttons{margin-left:auto;display:flex;gap:5px}.admin-order-btn{width:32px;height:32px;padding:0;border:1px solid #333;border-radius:9px;background:#111;color:var(--milk);font:inherit;font-size:17px;line-height:1}.admin-order-btn:active{background:#222;transform:scale(.96)}
 
 
 /* ADMIN BUTTON SIZES */
-.admin-actions{grid-template-columns:1fr 1fr!important}.admin-actions .admin-save,.admin-actions .admin-delete{height:52px!important;min-height:52px!important;box-sizing:border-box!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important}.admin-delete{padding:0!important}.admin-drag{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;font-size:22px;line-height:1;flex:0 0 28px}
+.admin-actions{grid-template-columns:1fr 1fr!important}.admin-actions .admin-save,.admin-actions .admin-delete{height:52px!important;min-height:52px!important;box-sizing:border-box!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important}.admin-delete{padding:0!important}

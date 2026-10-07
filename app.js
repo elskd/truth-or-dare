@@ -532,7 +532,7 @@ initAdminNavigation();function renderAdmin(){
 
   list.innerHTML+=questions.map((q,index)=>{
     const selectedWeight=q.weights?.[adminMode]??1;
-    return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-drag" aria-hidden="true">≡</span><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
+    return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-drag" aria-hidden="true">≡</span><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-order-buttons"><button type="button" class="admin-order-btn" data-move-up="'+q.id+'">↑</button><button type="button" class="admin-order-btn" data-move-down="'+q.id+'">↓</button></span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
       '<div class="admin-card-label">Режимы</div><div class="admin-check-grid question-modes">'+
       ADMIN_MODES.map(([id,name])=>'<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>').join("")+
       '</div><div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+
@@ -620,6 +620,20 @@ initAdminNavigation();function renderAdmin(){
       }
     };
   });
+
+  const moveQuestion=(id,direction)=>{
+    const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode))
+      .sort((x,y)=>getQuestionOrder(x,adminMode)-getQuestionOrder(y,adminMode)||Number(x.id)-Number(y.id));
+    const index=items.findIndex(q=>q.id===id);
+    const target=index+direction;
+    if(index<0||target<0||target>=items.length)return;
+    [items[index],items[target]]=[items[target],items[index]];
+    items.forEach((q,i)=>{if(!q.order)q.order={};q.order[adminMode]=i+1});
+    saveQuestionBank();
+    renderAdmin();
+  };
+  list.querySelectorAll("[data-move-up]").forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();moveQuestion(Number(b.dataset.moveUp),-1)});
+  list.querySelectorAll("[data-move-down]").forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();moveQuestion(Number(b.dataset.moveDown),1)});
 
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
     const id=Number(b.dataset.saveId), area=list.querySelector('textarea[data-question-id="'+id+'"]'), q=questionBank.find(x=>x.id===id);

@@ -658,3 +658,7 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 /* QUESTION ORDER */
 .admin-drag{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;color:var(--muted);font-size:20px;line-height:1;cursor:grab;touch-action:none}.admin-card.dragging{opacity:.45}
+
+
+/* ADMIN ACTIONS */
+.admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.admin-delete{min-height:42px;border:1px solid #3a2525;border-radius:12px;background:#100909;color:#c9a6a6;font:inherit;font-size:13px}.admin-delete:active{opacity:.7}

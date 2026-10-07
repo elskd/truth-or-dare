@@ -88,3 +88,8 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
  .app{min-height:calc(100dvh - 40px);border:1px solid #1e1e1e;border-radius:28px;padding:26px 30px 30px}
  .view{min-height:calc(100dvh - 92px)}
 }
+/* Final participant grid: no gender controls */
+.player-row{grid-template-columns:28px minmax(0,1fr)!important;align-items:center!important;min-height:68px!important;position:relative!important}
+.player-row .gender,.player-row button.gender{display:none!important}
+.player-row .remove-player{display:block!important;grid-column:auto!important}
+.name-input{display:block!important;height:42px!important;line-height:42px!important;margin:0!important}

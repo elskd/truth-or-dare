@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Никита","Эля"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["",""],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 const modeMax={classic:2,spicy:3,wild:4,inferno:5};
@@ -133,8 +133,8 @@ function renderPlayers(){
   state.players.forEach((name,i)=>{
     const row=document.createElement("div");
     row.className="player-row";
-    row.innerHTML='<div class="player-mark">'+(i%2===0?"Н.":"Э.")+'</div><input class="name-input" value="'+name.replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА"><button class="gender active">'+(i%2===0?"♂":"♀")+'</button><button class="gender">'+(i%2===0?"♀":"♂")+'</button>'+(i>1?'<button class="remove-player">×</button>':'<span></span>');
-    row.querySelector(".name-input").addEventListener("input",e=>state.players[i]=e.target.value||("Игрок "+(i+1)));
+    row.innerHTML='<div class="player-mark">'+(i+1)+". "+'</div><input class="name-input" value="'+name.replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА"><button class="gender active">'+(i%2===0?"♂":"♀")+'</button><button class="gender">'+(i%2===0?"♀":"♂")+'</button>'+(i>1?'<button class="remove-player">×</button>':'<span></span>');
+    row.querySelector(".name-input").addEventListener("input",e=>state.players[i]=e.target.value);
     const remove=row.querySelector(".remove-player");
     if(remove)remove.onclick=()=>{state.players.splice(i,1);renderPlayers()};
     list.appendChild(row);
@@ -198,7 +198,7 @@ document.querySelectorAll(".choice-card").forEach(b=>b.onclick=()=>pick(b.datase
 $("nextQuestion").onclick=nextQuestion;
 $("replaceBtn").onclick=replaceQuestion;
 $("againBtn").onclick=()=>{setupDeck();openTurn()};
-$("addPlayer").onclick=()=>{if(state.players.length<4){state.players.push("Игрок "+(state.players.length+1));renderPlayers()}};
+$("addPlayer").onclick=()=>{if(state.players.length<4){state.players.push("");renderPlayers()}};
 renderPlayers();
 
 setTimeout(()=>{$("loader").classList.add("hidden");show("homeView")},1600);

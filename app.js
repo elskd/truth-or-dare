@@ -160,13 +160,23 @@ function renderPlayers(){
 }
 
 function setupDeck(){
-  // Берём только наши основные 100 карточек; дикие карты остаются отдельным дополнительным пулом.
-  const main=cards.filter(c=>c[0]!=="wild");
-  state.deck=main.slice(0,100).map(c=>[c[0],c[1],c[2],false]);
+  state.deck=getActiveQuestions()
+    .filter(q=>q.text.trim() && q.modes.includes(state.mode))
+    .map(q=>({
+      type:q.type,
+      level:Number(q.level),
+      text:q.text,
+      gender:q.gender||"both",
+      weight:Number((q.weights&&q.weights[state.mode])||1),
+      used:false
+    }))
+    .sort((a,b)=>a.level-b.level);
   state.played=0;
   state.turn=0;
   state.current=null;
+  state.currentLevel=1;
 }
+
 
 function validPlayers(){
   return state.players.length>=2 && state.players.every(p=>p.trim());
@@ -179,26 +189,47 @@ function openTurn(){
   $("turnNumber").textContent=String(state.played+1);
 }
 
+function weightedPick(items){
+  const total=items.reduce((sum,q)=>sum+Math.max(1,q.weight||1),0);
+  let roll=Math.random()*total;
+  for(const q of items){
+    roll-=Math.max(1,q.weight||1);
+    if(roll<=0)return q;
+  }
+  return items[items.length-1];
+}
+
 function pick(choice){
-  const remaining=state.deck.filter(c=>!c[4]);
-  if(!remaining.length){finish();return}
+  const remaining=state.deck.filter(c=>!c.used);
+  if(!remaining.length){finish();return;}
 
-  let options=remaining;
-  if(choice==="truth")options=remaining.filter(c=>c[0]==="truth");
-  if(choice==="dare")options=remaining.filter(c=>c[0]==="dare");
-  if(!options.length)options=remaining;
+  const playerGender=state.playerGenders[state.turn%state.players.length]||"female";
+  const eligible=remaining.filter(c=>
+    c.gender==="both" || c.gender===playerGender
+  );
+  if(!eligible.length){finish();return;}
 
-  const c=options[Math.floor(Math.random()*options.length)];
-  c[3]=true;
-  state.current=c;
+  const currentLevel=Math.min(...eligible.map(c=>c.level));
+  state.currentLevel=currentLevel;
+
+  let pool=eligible.filter(c=>c.level===currentLevel);
+  if(choice==="truth" || choice==="dare"){
+    const typed=pool.filter(c=>c.type===choice);
+    if(typed.length)pool=typed;
+  }
+
+  const next=weightedPick(pool);
+  next.used=true;
+  state.current=next;
 
   $("questionPlayer").textContent=state.players[state.turn%state.players.length];
   $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
-  $("questionLevel").textContent=c[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+c[1];
-  $("questionType").textContent=c[0]==="truth"?"ПРАВДА":c[0]==="dare"?"ДЕЙСТВИЕ":"ДИКАЯ КАРТА";
-  $("questionText").textContent=c[2];
+  $("questionLevel").textContent="УРОВЕНЬ "+next.level;
+  $("questionType").textContent=next.type==="truth"?"ПРАВДА":"ДЕЙСТВИЕ";
+  $("questionText").textContent=next.text;
   show("questionView");
 }
+
 
 function nextQuestion(){
   state.played++;
@@ -279,210 +310,86 @@ setTimeout(()=>{
   show("homeView");
 },1500);
 
-/* QUESTION BANK + ADMIN */
-const QUESTION_BANK_KEY="truthDareQuestionBanksV1";
+/* SHARED QUESTION BANK + ADMIN */
+const QUESTION_BANK_KEY="truthDareQuestionBankSharedV2";
+const OLD_QUESTION_BANK_KEY="truthDareQuestionBanksV1";
 const ADMIN_MODES=[
   ["classic","Микс"],["spicy","Веселье"],["wild","Романтика"],["inferno","18+"]
 ];
 let adminMode="classic";
 let adminLevel=1;
 
-function makeDefaultBanks(){
-  const base=cards.map((c,i)=>({
+function makeDefaultQuestionBank(){
+  return cards.map((c,i)=>({
     id:i,
     type:c[0],
     level:Number(c[1]),
     gender:"both",
-    text:c[2]
+    text:c[2],
+    modes:["classic","spicy","wild","inferno"],
+    weights:{classic:1,spicy:1,wild:1,inferno:1}
   }));
-  const result={};
-  ADMIN_MODES.forEach(([mode])=>{
-    result[mode]=base.map(q=>({...q}));
-  });
-  return result;
 }
-function loadQuestionBanks(){
+
+function migrateQuestionBank(){
   try{
-    const saved=JSON.parse(localStorage.getItem(QUESTION_BANK_KEY)||"null");
-    if(saved && ADMIN_MODES.every(([m])=>Array.isArray(saved[m]))){
-      ADMIN_MODES.forEach(([m])=>saved[m]=saved[m].map(q=>({...q,gender:q.gender||"both"})));
-      return saved;
+    const shared=JSON.parse(localStorage.getItem(QUESTION_BANK_KEY)||"null");
+    if(Array.isArray(shared))return shared;
+
+    const old=JSON.parse(localStorage.getItem(OLD_QUESTION_BANK_KEY)||"null");
+    if(old && ADMIN_MODES.every(([m])=>Array.isArray(old[m]))){
+      const map=new Map();
+      let nextId=0;
+      ADMIN_MODES.forEach(([mode])=>{
+        old[mode].forEach(q=>{
+          const normalized={
+            type:q.type,
+            level:Number(q.level),
+            gender:q.gender||"both",
+            text:String(q.text||"").trim()
+          };
+          const key=[normalized.type,normalized.level,normalized.gender,normalized.text].join("|");
+          let existing=map.get(key);
+          if(!existing){
+            existing={
+              id:nextId++,
+              type:normalized.type,
+              level:normalized.level,
+              gender:normalized.gender,
+              text:normalized.text,
+              modes:[],
+              weights:{classic:0,spicy:0,wild:0,inferno:0}
+            };
+            map.set(key,existing);
+          }
+          if(!existing.modes.includes(mode))existing.modes.push(mode);
+          existing.weights[mode]=1;
+        });
+      });
+      const migrated=[...map.values()];
+      localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(migrated));
+      return migrated;
     }
   }catch(e){}
-  return makeDefaultBanks();
+  const defaults=makeDefaultQuestionBank();
+  localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(defaults));
+  return defaults;
 }
-let questionBanks=loadQuestionBanks();
 
-function saveQuestionBanks(){
-  localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(questionBanks));
+let questionBank=migrateQuestionBank();
+
+function saveQuestionBank(){
+  localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(questionBank));
 }
 
 function getActiveQuestions(){
-  return questionBanks[state.mode]||makeDefaultBanks().classic;
+  return questionBank;
 }
 
-function setupDeck(){
-  state.deck=getActiveQuestions()
-    .filter(q=>q.text.trim())
-    .map(q=>[q.type,q.level,q.text,q.gender||"both",false])
-    .sort((a,b)=>a[1]-b[1]);
-  state.played=0;
-  state.turn=0;
-  state.current=null;
-  state.currentLevel=1;
+function getNextQuestionId(){
+  return questionBank.reduce((max,q)=>Math.max(max,Number(q.id)||0),-1)+1;
 }
 
-function pick(choice){
-  const remaining=state.deck.filter(c=>!c[3]);
-  if(!remaining.length){finish();return;}
-
-  const minLevel=state.currentLevel||1;
-  const playerGender=state.playerGenders[state.turn%state.players.length]||"female";
-  let pool=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender));
-  if(!pool.length){finish();return;}
-
-  if(choice==="truth" || choice==="dare"){
-    const typed=pool.filter(c=>c[0]===choice);
-    if(typed.length) pool=typed;
-    else{
-      const next=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender) && c[0]===choice);
-      if(next.length) pool=next;
-      else pool=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender));
-    }
-  }
-
-  const next=pool[0];
-  next[4]=true;
-  state.current=next;
-  state.currentLevel=next[1];
-
-  $("questionPlayer").textContent=state.players[state.turn%state.players.length];
-  $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
-  $("questionLevel").textContent=next[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+next[1];
-  $("questionType").textContent=next[0]==="truth"?"ПРАВДА":next[0]==="dare"?"ДЕЙСТВИЕ":"ДИКАЯ КАРТА";
-  $("questionText").textContent=next[2];
-  show("questionView");
-}
-
-function renderAdmin(){
-  const modeGrid=$("adminModeGrid");
-  const levelGrid=$("adminLevelGrid");
-  const list=$("adminList");
-
-  modeGrid.innerHTML=ADMIN_MODES.map(([id,name])=>
-    '<button class="admin-tab '+(id===adminMode?"active":"")+'" data-admin-mode="'+id+'">'+name+'</button>'
-  ).join("");
-
-  levelGrid.innerHTML=[1,2,3,4,5].map(level=>
-    '<button class="admin-tab '+(level===adminLevel?"active":"")+'" data-admin-level="'+level+'">Уровень '+level+'</button>'
-  ).join("");
-
-  const addModeOptions=ADMIN_MODES.map(([id,name])=>
-    '<option value="'+id+'" '+(id===adminMode?"selected":"")+'>'+name+'</option>'
-  ).join("");
-
-  list.innerHTML=
-    '<div class="admin-add">'+
-      '<div class="admin-add-title">Добавить вопрос</div>'+
-      '<select id="adminAddMode" class="admin-select">'+addModeOptions+'</select>'+
-      '<select id="adminAddLevel" class="admin-select">'+
-        [1,2,3,4,5].map(level=>'<option value="'+level+'" '+(level===adminLevel?"selected":"")+'>Уровень '+level+'</option>').join("")+
-      '</select>'+
-      '<select id="adminAddType" class="admin-select">'+
-        '<option value="truth">Правда</option>'+
-        '<option value="dare">Действие</option>'+
-      '</select>'+
-      '<select id="adminAddGender" class="admin-select">'+
-        '<option value="both" selected>Для обоих</option>'+
-        '<option value="female">Для девушек</option>'+
-        '<option value="male">Для парней</option>'+
-      '</select>'+
-      '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
-      '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button>'+
-    '</div>';
-
-  const questions=(questionBanks[adminMode]||[])
-    .filter(q=>q.level===adminLevel)
-    .sort((a,b)=>{
-      const typeOrder={truth:0,dare:1,wild:2};
-      return (typeOrder[a.type]??9)-(typeOrder[b.type]??9);
-    });
-
-  list.innerHTML+=questions.map((q,index)=>
-    '<div class="admin-card">'+
-      '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
-      (q.type==="truth"?"Правда":q.type==="dare"?"Действие":"Дикая карта")+
-      '</span></div>'+
-      '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'">'+
-        '<option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option>'+
-        '<option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option>'+
-        '<option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option>'+
-      '</select>'+
-      '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea>'+
-      '<button class="admin-save" data-save-id="'+q.id+'">Сохранить</button>'+
-    '</div>'
-  ).join("") || '<div class="admin-note">В этом уровне пока нет вопросов.</div>';
-
-  modeGrid.querySelectorAll("[data-admin-mode]").forEach(b=>b.onclick=()=>{
-    adminMode=b.dataset.adminMode;
-    renderAdmin();
-  });
-
-  levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{
-    adminLevel=Number(b.dataset.adminLevel);
-    renderAdmin();
-  });
-
-  $("adminAddQuestion").onclick=()=>{
-    const text=$("adminNewQuestion").value.trim();
-    const mode=$("adminAddMode").value;
-    const level=Number($("adminAddLevel").value);
-    const type=$("adminAddType").value;
-    const gender=$("adminAddGender").value;
-
-    if(!text){
-      $("adminNewQuestion").focus();
-      return;
-    }
-
-    const allQuestions=ADMIN_MODES.flatMap(([id])=>questionBanks[id]||[]);
-    const nextId=allQuestions.reduce((max,q)=>Math.max(max,Number(q.id)||0),-1)+1;
-
-    if(!questionBanks[mode])questionBanks[mode]=[];
-    questionBanks[mode].push({
-      id:nextId,
-      type,
-      level,
-      gender,
-      text
-    });
-
-    saveQuestionBanks();
-    adminMode=mode;
-    adminLevel=level;
-    renderAdmin();
-  };
-
-  list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
-    const id=Number(b.dataset.saveId);
-    const area=list.querySelector('textarea[data-question-id="'+id+'"]');
-    const q=(questionBanks[adminMode]||[]).find(x=>x.id===id);
-    const genderSelect=list.querySelector('[data-gender-id="'+id+'"]');
-
-    if(q && area){
-      q.text=area.value.trim();
-      q.gender=genderSelect?genderSelect.value:"both";
-      saveQuestionBanks();
-      b.textContent="Сохранено";
-      setTimeout(()=>{b.textContent="Сохранить"},900);
-    }
-  });
-}
-function escapeHtml(value){
-  return String(value)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
 
 const initAdminNavigation=()=>{
   const entry=$("adminEntry");
@@ -499,4 +406,153 @@ const initAdminNavigation=()=>{
     back.addEventListener("click",()=>show("settingsView"));
   }
 };
-initAdminNavigation();
+initAdminNavigation();function renderAdmin(){
+  const modeGrid=$("adminModeGrid");
+  const levelGrid=$("adminLevelGrid");
+  const list=$("adminList");
+
+  modeGrid.innerHTML=ADMIN_MODES.map(([id,name])=>
+    '<button class="admin-tab '+(id===adminMode?"active":"")+'" data-admin-mode="'+id+'">'+name+'</button>'
+  ).join("");
+
+  levelGrid.innerHTML=[1,2,3,4,5].map(level=>
+    '<button class="admin-tab '+(level===adminLevel?"active":"")+'" data-admin-level="'+level+'">Уровень '+level+'</button>'
+  ).join("");
+
+  const modeChecks=ADMIN_MODES.map(([id,name])=>
+    '<label class="admin-check"><input type="checkbox" value="'+id+'" checked> <span>'+name+'</span></label>'
+  ).join("");
+
+  list.innerHTML=
+    '<div class="admin-add">'+
+      '<div class="admin-add-title">Добавить вопрос</div>'+
+      '<div class="admin-check-grid">'+modeChecks+'</div>'+
+      '<select id="adminAddLevel" class="admin-select">'+
+        [1,2,3,4,5].map(level=>'<option value="'+level+'" '+(level===adminLevel?"selected":"")+'>Уровень '+level+'</option>').join("")+
+      '</select>'+
+      '<select id="adminAddType" class="admin-select">'+
+        '<option value="truth">Правда</option>'+
+        '<option value="dare">Действие</option>'+
+      '</select>'+
+      '<select id="adminAddGender" class="admin-select">'+
+        '<option value="both" selected>Для обоих</option>'+
+        '<option value="female">Для девушек</option>'+
+        '<option value="male">Для парней</option>'+
+      '</select>'+
+      '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
+      '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button>'+
+    '</div>';
+
+  const questions=questionBank
+    .filter(q=>q.level===adminLevel && q.modes.includes(adminMode))
+    .sort((a,b)=>{
+      const typeOrder={truth:0,dare:1};
+      return (typeOrder[a.type]??9)-(typeOrder[b.type]??9);
+    });
+
+  list.innerHTML+=questions.map((q,index)=>{
+    const selectedWeight=Number(q.weights?.[adminMode]||1);
+    return '<div class="admin-card">'+
+      '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
+      (q.type==="truth"?"Правда":"Действие")+
+      '</span></div>'+
+      '<div class="admin-card-label">Режимы</div>'+
+      '<div class="admin-check-grid question-modes">'+
+        ADMIN_MODES.map(([id,name])=>
+          '<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>'
+        ).join("")+
+      '</div>'+
+      '<div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+
+      '<select class="admin-select" data-weight-id="'+q.id+'">'+
+        '<option value="1" '+(selectedWeight===1?"selected":"")+'>1 · обычный</option>'+
+        '<option value="2" '+(selectedWeight===2?"selected":"")+'>2 · чаще</option>'+
+        '<option value="3" '+(selectedWeight===3?"selected":"")+'>3 · сильно чаще</option>'+
+      '</select>'+
+      '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'">'+
+        '<option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option>'+
+        '<option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option>'+
+        '<option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option>'+
+      '</select>'+
+      '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea>'+
+      '<button class="admin-save" data-save-id="'+q.id+'">Сохранить</button>'+
+    '</div>';
+  }).join("") || '<div class="admin-note">В этом уровне пока нет вопросов.</div>';
+
+  modeGrid.querySelectorAll("[data-admin-mode]").forEach(b=>b.onclick=()=>{
+    adminMode=b.dataset.adminMode;
+    renderAdmin();
+  });
+
+  levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{
+    adminLevel=Number(b.dataset.adminLevel);
+    renderAdmin();
+  });
+
+  $("adminAddQuestion").onclick=()=>{
+    const text=$("adminNewQuestion").value.trim();
+    const level=Number($("adminAddLevel").value);
+    const type=$("adminAddType").value;
+    const gender=$("adminAddGender").value;
+    const modes=ADMIN_MODES
+      .filter(([id])=>list.querySelector('.admin-check input[value="'+id+'"]')?.checked)
+      .map(([id])=>id);
+
+    if(!text || !modes.length){
+      $("adminNewQuestion").focus();
+      return;
+    }
+
+    const q={
+      id:getNextQuestionId(),
+      type,
+      level,
+      gender,
+      text,
+      modes,
+      weights:{classic:1,spicy:1,wild:1,inferno:1}
+    };
+    questionBank.push(q);
+    saveQuestionBank();
+    adminMode=modes[0];
+    adminLevel=level;
+    renderAdmin();
+  };
+
+  list.querySelectorAll("[data-mode-toggle][data-question]").forEach(input=>input.onchange=()=>{
+    const id=Number(input.dataset.question);
+    const q=questionBank.find(x=>x.id===id);
+    if(!q)return;
+    const mode=input.dataset.modeToggle;
+    if(input.checked){
+      if(!q.modes.includes(mode))q.modes.push(mode);
+      if(!q.weights)q.weights={classic:1,spicy:1,wild:1,inferno:1};
+      if(!q.weights[mode])q.weights[mode]=1;
+    }else{
+      q.modes=q.modes.filter(x=>x!==mode);
+      if(q.modes.length===0){
+        input.checked=true;
+        return;
+      }
+    }
+    saveQuestionBank();
+    renderAdmin();
+  });
+
+  list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
+    const id=Number(b.dataset.saveId);
+    const area=list.querySelector('textarea[data-question-id="'+id+'"]');
+    const q=questionBank.find(x=>x.id===id);
+    const genderSelect=list.querySelector('[data-gender-id="'+id+'"]');
+    const weightSelect=list.querySelector('[data-weight-id="'+id+'"]');
+    if(q && area){
+      q.text=area.value.trim();
+      q.gender=genderSelect?genderSelect.value:"both";
+      if(!q.weights)q.weights={classic:1,spicy:1,wild:1,inferno:1};
+      q.weights[adminMode]=weightSelect?Number(weightSelect.value):1;
+      saveQuestionBank();
+      b.textContent="Сохранено";
+      setTimeout(()=>{b.textContent="Сохранить"},900);
+    }
+  });
+}
+

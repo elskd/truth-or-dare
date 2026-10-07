@@ -662,3 +662,7 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 /* ADMIN ACTIONS */
 .admin-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.admin-delete{min-height:42px;border:1px solid #3a2525;border-radius:12px;background:#100909;color:#c9a6a6;font:inherit;font-size:13px}.admin-delete:active{opacity:.7}
+
+
+/* DRAG HANDLE */
+.admin-drag{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important;cursor:grab!important;-webkit-user-drag:none!important}

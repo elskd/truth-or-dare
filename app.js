@@ -225,20 +225,25 @@ $("settingsBack").onclick=()=>show("homeView");
 $("turnBack").onclick=()=>show("settingsView");
 $("questionBack").onclick=()=>openTurn();
 
-$("launchGame").onclick=()=>{
-  if(!validPlayers())return;
-  state.mode=document.querySelector(".mode-card.active").dataset.mode;
-  state.count=Number(document.querySelector(".count-btn.active").dataset.count);
-  setupDeck();
-  openTurn();
-};
+const launchGameButton=$("launchGame");
+if(launchGameButton){
+  launchGameButton.onclick=()=>{
+    if(!validPlayers())return;
+    const activeMode=document.querySelector(".mode-card.active");
+    const activeCount=document.querySelector(".count-btn.active");
+    if(activeMode)state.mode=activeMode.dataset.mode;
+    if(activeCount)state.count=Number(activeCount.dataset.count);
+    setupDeck();
+    openTurn();
+  };
+}
 
-document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
+if(document.querySelectorAll(".mode-card").length)document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
 });
 
-document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
+if(document.querySelectorAll(".count-btn").length)document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
   document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
 });

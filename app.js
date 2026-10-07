@@ -354,6 +354,21 @@ function migrateQuestionBank(){
           }
         }));
       if(normalized.length>0){
+        const hasQuestionsForMode=ADMIN_MODES.every(([mode])=>
+          normalized.some(q=>Array.isArray(q.modes) && q.modes.includes(mode))
+        );
+        if(hasQuestionsForMode){
+          localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(normalized));
+          return normalized;
+        }
+        const defaults=makeDefaultQuestionBank();
+        const byKey=new Map(normalized.map(q=>[
+          [q.type,q.level,q.gender,q.text].join("|"),q
+        ]));
+        defaults.forEach(def=>{
+          const key=[def.type,def.level,def.gender,def.text].join("|");
+          if(!byKey.has(key))normalized.push(def);
+        });
         localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(normalized));
         return normalized;
       }

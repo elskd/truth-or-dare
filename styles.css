@@ -458,3 +458,39 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 .admin-question-gender{
   margin-bottom:8px !important;
 }
+
+
+/* COMPACT GENDER CONTROL — right edge */
+.player-row{
+  grid-template-columns:28px minmax(0,1fr) 30px;
+  column-gap:10px;
+  position:relative;
+}
+.gender-select{
+  width:30px !important;
+  height:36px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:var(--muted) !important;
+  font-size:14px !important;
+  line-height:36px !important;
+  text-align:center;
+  appearance:auto !important;
+  -webkit-appearance:auto !important;
+}
+.gender-select:focus{color:var(--milk) !important;outline:none}
+.player-row .remove-player{
+  position:absolute;
+  right:0;
+  top:13px;
+  z-index:2;
+}
+.player-row .remove-player ~ .gender-select{
+  margin-right:30px;
+}
+@media(max-width:370px){
+  .player-row{grid-template-columns:24px minmax(0,1fr) 28px;column-gap:6px}
+  .gender-select{width:28px !important;font-size:13px !important}
+}

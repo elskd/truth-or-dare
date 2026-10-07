@@ -217,7 +217,10 @@ $("startSetup").onclick=()=>{
     }
     return;
   }
-  show("settingsView");
+  state.mode="classic";
+  state.count=20;
+  setupDeck();
+  openTurn();
 };
 
 $("settingsTop").onclick=()=>show("settingsView");

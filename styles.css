@@ -117,7 +117,7 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 .choice-symbol{display:none}
 .choice-title{margin-top:0;font-size:22px;font-weight:500;line-height:28px}
 .choice-subtitle{margin-top:7px;color:var(--muted);font-size:13px;line-height:18px}
-.random-card{grid-column:1/-1;width:100%;min-height:170px;justify-self:stretch}
+.random-card{grid-column:1/-1;width:100%;min-height:120px;height:120px;justify-self:stretch}
 
 /* question */
 .question-meta span:first-child{color:var(--milk);font-size:30px;font-weight:500;line-height:36px;letter-spacing:-.03em;text-transform:none}

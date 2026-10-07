@@ -532,3 +532,64 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 .question-modes .admin-check{
   min-height:36px;
 }
+
+
+/* GAME RULES */
+#rulesView .page-title{
+  margin:0 0 32px !important;
+}
+.rules-list{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  margin-bottom:28px;
+}
+.rule{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:14px;
+}
+.rule-number{
+  color:var(--muted);
+  font-size:11px;
+  line-height:22px;
+  letter-spacing:.12em;
+}
+.rule h3{
+  margin:0 0 7px;
+  color:var(--milk);
+  font-size:17px;
+  line-height:22px;
+  font-weight:500;
+}
+.rule p{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+  line-height:21px;
+}
+.rules-note{
+  padding:18px 18px 17px;
+  margin-top:4px;
+  border:1px solid #303030;
+  border-radius:16px;
+  background:#111;
+}
+.rules-note strong{
+  display:block;
+  margin-bottom:7px;
+  color:var(--milk);
+  font-size:13px;
+  font-weight:500;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.rules-note p{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:20px;
+}
+#rulesView .bottom-button{
+  margin-top:20px !important;
+}

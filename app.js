@@ -336,7 +336,28 @@ function makeDefaultQuestionBank(){
 function migrateQuestionBank(){
   try{
     const shared=JSON.parse(localStorage.getItem(QUESTION_BANK_KEY)||"null");
-    if(Array.isArray(shared))return shared;
+    if(Array.isArray(shared) && shared.length>0){
+      const normalized=shared
+        .filter(q=>q && String(q.text||"").trim())
+        .map((q,i)=>({
+          id:Number.isFinite(Number(q.id))?Number(q.id):i,
+          type:q.type==="dare"?"dare":"truth",
+          level:Math.min(5,Math.max(1,Number(q.level)||1)),
+          gender:["both","female","male"].includes(q.gender)?q.gender:"both",
+          text:String(q.text||"").trim(),
+          modes:Array.isArray(q.modes)&&q.modes.length?q.modes.filter(m=>ADMIN_MODES.some(([id])=>id===m)):ADMIN_MODES.map(([id])=>id),
+          weights:{
+            classic:Number(q.weights?.classic)||1,
+            spicy:Number(q.weights?.spicy)||1,
+            wild:Number(q.weights?.wild)||1,
+            inferno:Number(q.weights?.inferno)||1
+          }
+        }));
+      if(normalized.length>0){
+        localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(normalized));
+        return normalized;
+      }
+    }
 
     const old=JSON.parse(localStorage.getItem(OLD_QUESTION_BANK_KEY)||"null");
     if(old && ADMIN_MODES.every(([m])=>Array.isArray(old[m]))){
@@ -345,11 +366,12 @@ function migrateQuestionBank(){
       ADMIN_MODES.forEach(([mode])=>{
         old[mode].forEach(q=>{
           const normalized={
-            type:q.type,
-            level:Number(q.level),
-            gender:q.gender||"both",
+            type:q.type==="dare"?"dare":"truth",
+            level:Math.min(5,Math.max(1,Number(q.level)||1)),
+            gender:["both","female","male"].includes(q.gender)?q.gender:"both",
             text:String(q.text||"").trim()
           };
+          if(!normalized.text)return;
           const key=[normalized.type,normalized.level,normalized.gender,normalized.text].join("|");
           let existing=map.get(key);
           if(!existing){
@@ -360,17 +382,18 @@ function migrateQuestionBank(){
               gender:normalized.gender,
               text:normalized.text,
               modes:[],
-              weights:{classic:0,spicy:0,wild:0,inferno:0}
+              weights:{classic:1,spicy:1,wild:1,inferno:1}
             };
             map.set(key,existing);
           }
           if(!existing.modes.includes(mode))existing.modes.push(mode);
-          existing.weights[mode]=1;
         });
       });
       const migrated=[...map.values()];
-      localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(migrated));
-      return migrated;
+      if(migrated.length>0){
+        localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(migrated));
+        return migrated;
+      }
     }
   }catch(e){}
   const defaults=makeDefaultQuestionBank();

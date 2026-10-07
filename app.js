@@ -559,21 +559,49 @@ initAdminNavigation();function renderAdmin(){
   });
 
   let draggedId=null;
+  let draggedCard=null;
+  let dragMoved=false;
+
+  const reorderToTarget=(targetCard)=>{
+    const targetId=Number(targetCard.dataset.dragId);
+    if(!draggedId||draggedId===targetId)return;
+    const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode))
+      .sort((x,y)=>getQuestionOrder(x,adminMode)-getQuestionOrder(y,adminMode)||Number(x.id)-Number(y.id));
+    const from=items.findIndex(q=>q.id===draggedId),to=items.findIndex(q=>q.id===targetId);
+    if(from<0||to<0)return;
+    const [moved]=items.splice(from,1);items.splice(to,0,moved);
+    items.forEach((q,i)=>{if(!q.order)q.order={};q.order[adminMode]=i+1});
+    saveQuestionBank();renderAdmin();
+  };
+
   list.querySelectorAll("[data-drag-id]").forEach(card=>{
-    card.ondragstart=()=>{draggedId=Number(card.dataset.dragId);card.classList.add("dragging")};
-    card.ondragend=()=>card.classList.remove("dragging");
+    card.ondragstart=e=>{draggedId=Number(card.dataset.dragId);draggedCard=card;card.classList.add("dragging");e.dataTransfer.effectAllowed="move"};
+    card.ondragend=()=>{card.classList.remove("dragging");draggedId=null;draggedCard=null};
     card.ondragover=e=>e.preventDefault();
-    card.ondrop=e=>{
-      e.preventDefault();
-      const targetId=Number(card.dataset.dragId);
-      if(!draggedId||draggedId===targetId)return;
-      const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode)).sort((x,y)=>getQuestionOrder(x,adminMode)-getQuestionOrder(y,adminMode)||Number(x.id)-Number(y.id));
-      const from=items.findIndex(q=>q.id===draggedId),to=items.findIndex(q=>q.id===targetId);
-      if(from<0||to<0)return;
-      const [moved]=items.splice(from,1);items.splice(to,0,moved);
-      items.forEach((q,i)=>{if(!q.order)q.order={};q.order[adminMode]=i+1});
-      saveQuestionBank();renderAdmin();
+    card.ondrop=e=>{e.preventDefault();reorderToTarget(card)};
+
+    card.onpointerdown=e=>{
+      if(e.pointerType==="mouse" && e.button!==0)return;
+      draggedId=Number(card.dataset.dragId);
+      draggedCard=card;
+      dragMoved=false;
+      card.setPointerCapture?.(e.pointerId);
+      card.classList.add("dragging");
     };
+    card.onpointermove=e=>{
+      if(!draggedId||!draggedCard)return;
+      if(Math.abs(e.movementY||0)>1)dragMoved=true;
+      const target=document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-drag-id]");
+      if(target&&target!==draggedCard)reorderToTarget(target);
+    };
+    card.onpointerup=e=>{
+      if(draggedCard){
+        draggedCard.classList.remove("dragging");
+        try{card.releasePointerCapture?.(e.pointerId)}catch(_){}
+      }
+      draggedId=null;draggedCard=null;
+    };
+    card.onpointercancel=()=>{if(draggedCard)draggedCard.classList.remove("dragging");draggedId=null;draggedCard=null};
   });
 
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{

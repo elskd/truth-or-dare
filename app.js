@@ -168,9 +168,10 @@ function setupDeck(){
       text:q.text,
       gender:q.gender||"both",
       weight:Number((q.weights&&q.weights[state.mode])||1),
+      order:getQuestionOrder(q,state.mode),
       used:false
     }))
-    .sort((a,b)=>a.level-b.level);
+    .sort((a,b)=>a.level-b.level||a.order-b.order);
   state.played=0;
   state.turn=0;
   state.current=null;
@@ -188,6 +189,8 @@ function openTurn(){
   $("turnNumber").textContent=String(state.played+1);
 }
 
+function getQuestionOrder(q,mode){const n=Number(q.order&&q.order[mode]);return Number.isFinite(n)?n:999999;}
+function normalizeQuestionOrder(bank){ADMIN_MODES.forEach(([mode])=>{for(let level=1;level<=5;level++){const list=bank.filter(q=>Number(q.level)===level&&q.modes?.includes(mode)).sort((x,y)=>getQuestionOrder(x,mode)-getQuestionOrder(y,mode)||Number(x.id)-Number(y.id));list.forEach((q,i)=>{if(!q.order)q.order={};q.order[mode]=i+1});}});return bank;}
 function weightedPick(items){
   const total=items.reduce((sum,q)=>sum+Math.max(1,q.weight||1),0);
   let roll=Math.random()*total;
@@ -523,11 +526,11 @@ initAdminNavigation();function renderAdmin(){
     '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
     '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button></div>';
 
-  const questions=questionBank.filter(q=>Number(q.level)===adminLevel && q.modes.includes(adminMode)).sort((a,b)=>({truth:0,dare:1}[a.type]??9)-({truth:0,dare:1}[b.type]??9));
+  const questions=questionBank.filter(q=>Number(q.level)===adminLevel && q.modes.includes(adminMode)).sort((a,b)=>getQuestionOrder(a,adminMode)-getQuestionOrder(b,adminMode)||Number(a.id)-Number(b.id));
 
   list.innerHTML+=questions.map((q,index)=>{
     const selectedWeight=Number(q.weights?.[adminMode]||1);
-    return '<div class="admin-card"><div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
+    return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-drag" aria-hidden="true">≡</span><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
       '<div class="admin-card-label">Режимы</div><div class="admin-check-grid question-modes">'+
       ADMIN_MODES.map(([id,name])=>'<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>').join("")+
       '</div><div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+
@@ -543,8 +546,8 @@ initAdminNavigation();function renderAdmin(){
     const text=$("adminNewQuestion").value.trim(), level=Number($("adminAddLevel").value), type=$("adminAddType").value, gender=$("adminAddGender").value;
     const modes=ADMIN_MODES.filter(([id])=>list.querySelector('.admin-check input[value="'+id+'"]')?.checked).map(([id])=>id);
     if(!text||!modes.length){$("adminNewQuestion").focus();return}
-    questionBank.push({id:getNextQuestionId(),type,level,gender,text,modes,weights:{classic:1,spicy:1,wild:1,inferno:1}});
-    saveQuestionBank();adminMode=modes[0];adminLevel=level;renderAdmin();
+    questionBank.push({id:getNextQuestionId(),type,level,gender,text,modes,weights:{classic:1,spicy:1,wild:1,inferno:1},order:{classic:999999,spicy:999999,wild:999999,inferno:999999}});
+    normalizeQuestionOrder(questionBank);saveQuestionBank();adminMode=modes[0];adminLevel=level;renderAdmin();
   };
 
   list.querySelectorAll("[data-mode-toggle][data-question]").forEach(input=>input.onchange=()=>{
@@ -552,7 +555,25 @@ initAdminNavigation();function renderAdmin(){
     const mode=input.dataset.modeToggle;
     if(input.checked){if(!q.modes.includes(mode))q.modes.push(mode);if(!q.weights)q.weights={classic:1,spicy:1,wild:1,inferno:1};if(!q.weights[mode])q.weights[mode]=1}
     else{q.modes=q.modes.filter(x=>x!==mode);if(!q.modes.length){input.checked=true;return}}
-    saveQuestionBank();renderAdmin();
+    normalizeQuestionOrder(questionBank);saveQuestionBank();renderAdmin();
+  });
+
+  let draggedId=null;
+  list.querySelectorAll("[data-drag-id]").forEach(card=>{
+    card.ondragstart=()=>{draggedId=Number(card.dataset.dragId);card.classList.add("dragging")};
+    card.ondragend=()=>card.classList.remove("dragging");
+    card.ondragover=e=>e.preventDefault();
+    card.ondrop=e=>{
+      e.preventDefault();
+      const targetId=Number(card.dataset.dragId);
+      if(!draggedId||draggedId===targetId)return;
+      const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode)).sort((x,y)=>getQuestionOrder(x,adminMode)-getQuestionOrder(y,adminMode)||Number(x.id)-Number(y.id));
+      const from=items.findIndex(q=>q.id===draggedId),to=items.findIndex(q=>q.id===targetId);
+      if(from<0||to<0)return;
+      const [moved]=items.splice(from,1);items.splice(to,0,moved);
+      items.forEach((q,i)=>{if(!q.order)q.order={};q.order[adminMode]=i+1});
+      saveQuestionBank();renderAdmin();
+    };
   });
 
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{

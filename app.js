@@ -7,8 +7,7 @@ function buildDeck(){state.deck=[...cards];state.index=0}
 function render(){if(state.played>=100||state.index>=state.deck.length){finish();return}let c=state.deck[state.index];$("levelLabel").textContent=c[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+c[1];$("progressLabel").textContent=String(state.played+1).padStart(2,"0")+" / 100";$("progressBar").style.width=Math.min(100,state.played+1)+"%";$("cardType").textContent=c[0]==="truth"?"ПРАВДА":c[0]==="dare"?"ДЕЙСТВИЕ":"СЕКРЕТ";$("cardNumber").textContent=String(state.played+1).padStart(2,"0");$("cardText").textContent=c[2]}
 function next(done){if(done)state.score++;state.played++;state.index++;render()}
 function finish(){show("finishView");$("finishText").textContent="Вы прошли "+state.played+" карточек и собрали "+state.score+" выполнений. Дальше ночь уже ваша."}
-$("startBtn").onclick=()=>show("moodView");
-document.querySelectorAll(".mood").forEach(b=>b.onclick=()=>{state.mood=b.dataset.mood;buildDeck();show("gameView");render()});
+$("startBtn").onclick=()=>{state.played=0;state.score=0;buildDeck();show("gameView");render()};
 $("nextBtn").onclick=()=>next(false);$("doneBtn").onclick=()=>next(true);
 $("againBtn").onclick=()=>{state.played=0;state.score=0;buildDeck();show("gameView");render()};
 $("resetBtn").onclick=()=>{state.played=0;state.score=0;show("startView")};

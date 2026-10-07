@@ -142,9 +142,8 @@ function renderPlayers(){
   $("playerCount").textContent=state.players.length;
 }
 function setupDeck(){
-  const maxLevel=modeMax[state.mode];
-  const eligible=cards.filter(c=>c[1]<=maxLevel);
-  state.deck=[...eligible];
+  const eligible=cards;
+  state.deck=eligible.map(c=>[c[0],c[1],c[2],false]);
   state.played=0;
   state.turn=0;
   state.current=null;

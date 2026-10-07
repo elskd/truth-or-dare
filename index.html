@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
 <title>Только между нами</title>
-<link rel="stylesheet" href="styles.css?v=45">
+<link rel="stylesheet" href="styles.css?v=46">
 </head>
 <body>
 <div id="loader" class="loader">
@@ -101,9 +101,20 @@
   <button class="primary bottom-button" id="rulesStart"><span class="btn-label">Начать игру</span><span class="btn-icon">→</span></button>
 </section>
 
+<section id="appearanceView" class="view">
+  <button class="back-btn" id="appearanceBack">‹</button>
+  <h2 class="page-title">Оформление</h2>
+  <div class="section-label">Тема</div>
+  <div class="theme-grid">
+    <button class="theme-card active" data-theme="dark"><b>Тёмная</b><small>Чёрный фон</small></button>
+    <button class="theme-card" data-theme="light"><b>Светлая</b><small>Светлый фон</small></button>
+  </div>
+</section>
+
 <section id="settingsView" class="view">
   <button class="back-btn" id="settingsBack">‹</button>
   <h2 class="page-title">Настройки</h2>
+  <button class="settings-entry" id="appearanceEntry">Оформление <span>→</span></button>
   <button class="admin-entry" id="adminEntry">Админка вопросов <span>→</span></button>
 </section>
 
@@ -156,6 +167,6 @@
   </div>
 </section>
 </main>
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 </body>
 </html>

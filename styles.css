@@ -12,20 +12,20 @@ body{min-height:100dvh}
 .loader-line i{display:block;height:100%;width:20%;background:#f5f2ed;border-radius:9px;animation:load 1.5s ease forwards}
 @keyframes load{to{width:100%}}
 
-.home-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 26px}
-.home-head h1{font-size:clamp(42px,11vw,60px);margin:0;letter-spacing:-.055em;font-weight:600}
-.gear{border:0;background:transparent;color:#b9b4ad;font-size:30px}
-.players-badge{width:max-content;border:1px solid #303030;border-radius:18px;padding:10px 20px;color:#8f8a84;font-size:14px;margin-bottom:34px}
-.players-badge b{font-size:25px;color:#f5f2ed;margin-right:5px}
+.home-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 24px}
+.home-head h1{font-size:44px;margin:0;letter-spacing:-.055em;font-weight:600}
+.gear{border:0;background:transparent;color:#b9b4ad;font-size:25px}
+.players-badge{width:max-content;border:1px solid #303030;border-radius:14px;padding:8px 16px;color:#8f8a84;font-size:13px;margin-bottom:30px}
+.players-badge b{font-size:20px;color:#f5f2ed;margin-right:5px}
 .players-list{display:grid;gap:20px}
-.player-row{display:grid;grid-template-columns:28px minmax(0,1fr) 44px 44px 24px;gap:8px;align-items:center;border-bottom:1px solid #292929;padding-bottom:18px}
-.player-mark{height:58px;border-left:5px solid #f5f2ed;color:#f5f2ed;font-size:21px;display:flex;align-items:center;padding-left:10px}
-.name-input{min-width:0;background:transparent;border:0;border-bottom:1px solid #3b3b3b;color:#f5f2ed;font-size:18px;padding:10px 4px;outline:none;width:100%}
-.gender{width:44px;height:44px;border:1px solid #3b3b3b;border-radius:50%;background:transparent;color:#eee;font-size:20px}
+.player-row{display:grid;grid-template-columns:24px minmax(0,1fr) 40px 40px 22px;gap:7px;align-items:center;border-bottom:1px solid #292929;padding-bottom:18px}
+.player-mark{height:52px;border-left:5px solid #f5f2ed;color:#f5f2ed;font-size:21px;display:flex;align-items:center;padding-left:10px}
+.name-input{min-width:0;background:transparent;border:0;border-bottom:1px solid #3b3b3b;color:#f5f2ed;font-size:16px;padding:10px 4px;outline:none;width:100%}
+.gender{width:40px;height:40px;border:1px solid #3b3b3b;border-radius:50%;background:transparent;color:#eee;font-size:20px}
 .gender.active{border-color:#f5f2ed;color:#f5f2ed}
 .remove-player{border:0;background:none;color:#777;font-size:30px}
-.add-player{align-self:flex-end;margin-top:12px;width:58px;height:58px;border-radius:50%;border:0;background:#f5f2ed;color:#111;font-size:36px}
-.big-button{margin-top:auto;width:100%;min-height:64px;border:0;border-radius:18px;background:#f5f2ed;color:#111;font-size:17px;font-weight:600;text-align:left;padding:0 22px;cursor:pointer}
+.add-player{align-self:flex-end;margin-top:10px;width:54px;height:54px;border-radius:50%;border:0;background:#f5f2ed;color:#111;font-size:36px}
+.big-button{margin-top:auto;width:100%;min-height:60px;border:0;border-radius:18px;background:#f5f2ed;color:#111;font-size:16px;font-weight:600;text-align:left;padding:0 22px;cursor:pointer}
 .big-button span{float:right;font-size:24px}
 .settings-title{font-size:clamp(45px,13vw,64px);line-height:.94;letter-spacing:-.055em;margin:38px 0 30px}
 .back-circle{width:56px;height:56px;border-radius:50%;border:1px solid #3a3a3a;background:#191919;color:#f5f2ed;font-size:42px;line-height:1;cursor:pointer}

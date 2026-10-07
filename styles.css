@@ -1,7 +1,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111;color:#f5f2ed}
 body{min-height:100dvh}
-.app{width:100%;max-width:520px;min-height:100dvh;margin:auto;padding:20px}
+.app{width:100%;max-width:500px;min-height:100dvh;margin:auto;padding:20px}
 .view{display:none;min-height:calc(100dvh - 40px);flex-direction:column}
 .view.active{display:flex}
 .loader{position:fixed;inset:0;width:100vw;height:100dvh;background:#111;color:#f5f2ed;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;transition:opacity .25s}
@@ -12,20 +12,20 @@ body{min-height:100dvh}
 .loader-line i{display:block;height:100%;width:20%;background:#f5f2ed;border-radius:9px;animation:load 1.5s ease forwards}
 @keyframes load{to{width:100%}}
 
-.home-head{display:flex;justify-content:space-between;align-items:center;margin:18px 0 28px}
-.home-head h1{font-size:clamp(50px,13vw,72px);margin:0;letter-spacing:-.055em;font-weight:600}
+.home-head{display:flex;justify-content:space-between;align-items:center;margin:14px 0 26px}
+.home-head h1{font-size:clamp(42px,11vw,60px);margin:0;letter-spacing:-.055em;font-weight:600}
 .gear{border:0;background:transparent;color:#b9b4ad;font-size:30px}
 .players-badge{width:max-content;border:1px solid #303030;border-radius:18px;padding:10px 20px;color:#8f8a84;font-size:14px;margin-bottom:34px}
 .players-badge b{font-size:25px;color:#f5f2ed;margin-right:5px}
 .players-list{display:grid;gap:20px}
-.player-row{display:grid;grid-template-columns:30px 1fr 44px 44px 30px;gap:8px;align-items:center;border-bottom:1px solid #292929;padding-bottom:18px}
-.player-mark{height:64px;border-left:5px solid #f5f2ed;color:#f5f2ed;font-size:21px;display:flex;align-items:center;padding-left:10px}
-.name-input{background:transparent;border:0;border-bottom:1px solid #3b3b3b;color:#f5f2ed;font-size:18px;padding:10px 4px;outline:none;width:100%}
+.player-row{display:grid;grid-template-columns:28px minmax(0,1fr) 44px 44px 24px;gap:8px;align-items:center;border-bottom:1px solid #292929;padding-bottom:18px}
+.player-mark{height:58px;border-left:5px solid #f5f2ed;color:#f5f2ed;font-size:21px;display:flex;align-items:center;padding-left:10px}
+.name-input{min-width:0;background:transparent;border:0;border-bottom:1px solid #3b3b3b;color:#f5f2ed;font-size:18px;padding:10px 4px;outline:none;width:100%}
 .gender{width:44px;height:44px;border:1px solid #3b3b3b;border-radius:50%;background:transparent;color:#eee;font-size:20px}
 .gender.active{border-color:#f5f2ed;color:#f5f2ed}
 .remove-player{border:0;background:none;color:#777;font-size:30px}
 .add-player{align-self:flex-end;margin-top:12px;width:58px;height:58px;border-radius:50%;border:0;background:#f5f2ed;color:#111;font-size:36px}
-.big-button{margin-top:auto;width:100%;min-height:68px;border:0;border-radius:18px;background:#f5f2ed;color:#111;font-size:17px;font-weight:600;text-align:left;padding:0 22px;cursor:pointer}
+.big-button{margin-top:auto;width:100%;min-height:64px;border:0;border-radius:18px;background:#f5f2ed;color:#111;font-size:17px;font-weight:600;text-align:left;padding:0 22px;cursor:pointer}
 .big-button span{float:right;font-size:24px}
 .settings-title{font-size:clamp(45px,13vw,64px);line-height:.94;letter-spacing:-.055em;margin:38px 0 30px}
 .back-circle{width:56px;height:56px;border-radius:50%;border:1px solid #3a3a3a;background:#191919;color:#f5f2ed;font-size:42px;line-height:1;cursor:pointer}

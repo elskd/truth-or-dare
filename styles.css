@@ -673,3 +673,31 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 /* ADMIN BUTTON SIZES */
 .admin-actions{grid-template-columns:1fr 1fr!important}.admin-actions .admin-save,.admin-actions .admin-delete{height:52px!important;min-height:52px!important;box-sizing:border-box!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important}.admin-delete{padding:0!important}
+
+/* APPEARANCE */
+.settings-entry{width:100%;min-height:54px;margin:0 0 12px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border:1px solid #303030;border-radius:16px;background:#111;color:var(--milk);font-size:15px;text-align:left}
+.settings-entry span{color:var(--muted);font-size:20px}
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.theme-card{min-height:110px;padding:18px;border:1px solid #303030;border-radius:18px;background:var(--surface);color:var(--muted);text-align:left}
+.theme-card b{display:block;margin-bottom:7px;color:var(--milk);font-size:17px;font-weight:500;line-height:22px}
+.theme-card small{color:var(--muted);font-size:13px;line-height:18px}
+.theme-card.active{border-color:var(--milk);background:var(--milk)}
+.theme-card.active b,.theme-card.active small{color:var(--bg)}
+.light-theme{--bg:#f7f5f0;--surface:#fff;--surface-2:#eeece7;--border:#d8d5cf;--muted:#77736d;--milk:#171717}
+.light-theme .back-btn{border-color:#d8d5cf}
+.light-theme .secondary{border-color:#d5d2cc}
+.light-theme .player-row{border-color:#dedbd5}
+.light-theme .name-input{border-color:#cfcac2}
+.light-theme .name-input::placeholder{color:#96928b}
+.light-theme .remove-player{color:#77736d}
+.light-theme .mode-card,.light-theme .count-btn,.light-theme .choice-card,.light-theme .admin-entry,.light-theme .settings-entry,.light-theme .theme-card{border-color:#d5d2cc}
+.light-theme .choice-card,.light-theme .admin-entry,.light-theme .settings-entry{background:#fff}
+.light-theme .admin-card{background:#fff;border-color:#d5d2cc}
+.light-theme .admin-select,.light-theme .admin-card textarea,.light-theme .admin-new-text{background:#fff!important;border-color:#d5d2cc!important;color:#171717!important}
+.light-theme .admin-check{background:#faf9f6;border-color:#d5d2cc;color:#77736d}
+.light-theme .admin-delete{background:#fff7f7;border-color:#decaca;color:#8a5f5f}
+.light-theme .admin-save{background:#fff}
+.light-theme .admin-tab{background:#fff;border-color:#d5d2cc}
+.light-theme .admin-order-btn{background:#fff;border-color:#d5d2cc;color:#171717}
+.light-theme .loader-line{background:#ddd9d2}
+.light-theme .app{border-color:#ddd9d2}

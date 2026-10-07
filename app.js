@@ -262,3 +262,138 @@ setTimeout(()=>{
   $("loader").classList.add("hidden");
   show("homeView");
 },1500);
+
+/* QUESTION BANK + ADMIN */
+const QUESTION_BANK_KEY="truthDareQuestionBanksV1";
+const ADMIN_MODES=[
+  ["classic","Классика"],["spicy","Остро"],["wild","Дико"],["inferno","Инферно"]
+];
+let adminMode="classic";
+let adminLevel=1;
+
+function makeDefaultBanks(){
+  const base=cards.map((c,i)=>({
+    id:i,
+    type:c[0],
+    level:Number(c[1]),
+    text:c[2]
+  }));
+  const result={};
+  ADMIN_MODES.forEach(([mode])=>{
+    result[mode]=base.map(q=>({...q}));
+  });
+  return result;
+}
+function loadQuestionBanks(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(QUESTION_BANK_KEY)||"null");
+    if(saved && ADMIN_MODES.every(([m])=>Array.isArray(saved[m]))) return saved;
+  }catch(e){}
+  return makeDefaultBanks();
+}
+let questionBanks=loadQuestionBanks();
+
+function saveQuestionBanks(){
+  localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(questionBanks));
+}
+
+function getActiveQuestions(){
+  return questionBanks[state.mode]||makeDefaultBanks().classic;
+}
+
+function setupDeck(){
+  state.deck=getActiveQuestions()
+    .filter(q=>q.text.trim())
+    .map(q=>[q.type,q.level,q.text,false])
+    .sort((a,b)=>a[1]-b[1]);
+  state.played=0;
+  state.turn=0;
+  state.current=null;
+  state.currentLevel=1;
+}
+
+function pick(choice){
+  const remaining=state.deck.filter(c=>!c[3]);
+  if(!remaining.length){finish();return;}
+
+  const minLevel=state.currentLevel||1;
+  let pool=remaining.filter(c=>c[1]>=minLevel);
+  if(!pool.length){finish();return;}
+
+  if(choice==="truth" || choice==="dare"){
+    const typed=pool.filter(c=>c[0]===choice);
+    if(typed.length) pool=typed;
+    else{
+      const next=remaining.filter(c=>c[1]>=minLevel && c[0]===choice);
+      if(next.length) pool=next;
+      else pool=remaining.filter(c=>c[1]>=minLevel);
+    }
+  }
+
+  const next=pool[0];
+  next[3]=true;
+  state.current=next;
+  state.currentLevel=next[1];
+
+  $("questionPlayer").textContent=state.players[state.turn%state.players.length];
+  $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
+  $("questionLevel").textContent=next[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+next[1];
+  $("questionType").textContent=next[0]==="truth"?"ПРАВДА":next[0]==="dare"?"ДЕЙСТВИЕ":"ДИКАЯ КАРТА";
+  $("questionText").textContent=next[2];
+  show("questionView");
+}
+
+function renderAdmin(){
+  const modeGrid=$("adminModeGrid");
+  const levelGrid=$("adminLevelGrid");
+  const list=$("adminList");
+  modeGrid.innerHTML=ADMIN_MODES.map(([id,name])=>
+    '<button class="admin-tab '+(id===adminMode?"active":"")+'" data-admin-mode="'+id+'">'+name+'</button>'
+  ).join("");
+  levelGrid.innerHTML=[1,2,3,4,5].map(level=>
+    '<button class="admin-tab '+(level===adminLevel?"active":"")+'" data-admin-level="'+level+'">Уровень '+level+'</button>'
+  ).join("");
+
+  const questions=(questionBanks[adminMode]||[]).filter(q=>q.level===adminLevel);
+  list.innerHTML=questions.map((q,index)=>
+    '<div class="admin-card">'+
+      '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
+      (q.type==="truth"?"Правда":q.type==="dare"?"Действие":"Дикая карта")+
+      '</span></div>'+
+      '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea>'+
+      '<button class="admin-save" data-save-id="'+q.id+'">Сохранить</button>'+
+    '</div>'
+  ).join("") || '<div class="admin-note">В этом уровне пока нет вопросов.</div>';
+
+  modeGrid.querySelectorAll("[data-admin-mode]").forEach(b=>b.onclick=()=>{
+    adminMode=b.dataset.adminMode;
+    renderAdmin();
+  });
+  levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{
+    adminLevel=Number(b.dataset.adminLevel);
+    renderAdmin();
+  });
+  list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
+    const id=Number(b.dataset.saveId);
+    const area=list.querySelector('textarea[data-question-id="'+id+'"]');
+    const q=(questionBanks[adminMode]||[]).find(x=>x.id===id);
+    if(q && area){
+      q.text=area.value.trim();
+      saveQuestionBanks();
+      b.textContent="Сохранено";
+      setTimeout(()=>{b.textContent="Сохранить"},900);
+    }
+  });
+}
+
+function escapeHtml(value){
+  return String(value)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+$("adminEntry").onclick=()=>{
+  renderAdmin();
+  show("adminView");
+};
+$("adminBack").onclick=()=>show("settingsView");

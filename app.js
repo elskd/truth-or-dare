@@ -581,34 +581,38 @@ initAdminNavigation();function renderAdmin(){
   };
 
   list.querySelectorAll("[data-drag-id]").forEach(card=>{
-    card.onpointerdown=e=>{
-      if(e.pointerType==="mouse"&&e.button!==0)return;
+    const handle=card.querySelector(".admin-drag");
+    if(!handle)return;
+    handle.onpointerdown=e=>{
+      e.preventDefault();
+      e.stopPropagation();
       draggedId=Number(card.dataset.dragId);
       draggedCard=card;
       lastTarget=null;
       card.classList.add("dragging");
-      card.setPointerCapture?.(e.pointerId);
+      handle.setPointerCapture?.(e.pointerId);
     };
-
-    card.onpointermove=e=>{
+    handle.onpointermove=e=>{
       if(!draggedCard||draggedCard!==card)return;
+      e.preventDefault();
       const target=document.elementFromPoint(e.clientX,e.clientY)?.closest("[data-drag-id]");
       if(!target||target===draggedCard||target.parentElement!==list)return;
       if(target===lastTarget)return;
       lastTarget=target;
       const rect=target.getBoundingClientRect();
       const insertAfter=e.clientY>rect.top+rect.height/2;
-      if(insertAfter) target.after(draggedCard);
+      if(insertAfter)target.after(draggedCard);
       else target.before(draggedCard);
     };
-
-    card.onpointerup=e=>{
+    handle.onpointerup=e=>{
+      e.preventDefault();
+      e.stopPropagation();
       if(draggedCard===card){
-        try{card.releasePointerCapture?.(e.pointerId)}catch(_){}
+        try{handle.releasePointerCapture?.(e.pointerId)}catch(_){}
         finishReorder();
       }
     };
-    card.onpointercancel=()=>{
+    handle.onpointercancel=()=>{
       if(draggedCard===card){
         card.classList.remove("dragging");
         draggedId=null;draggedCard=null;lastTarget=null;

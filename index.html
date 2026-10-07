@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090909">
 <title>Только между нами</title>
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 <div id="loader" class="loader">
@@ -25,6 +25,7 @@
 <section id="settingsView" class="view">
   <button class="back-btn" id="settingsBack">‹</button>
   <h2 class="page-title">Установи правила</h2>
+  <button class="admin-entry" id="adminEntry">Админка вопросов <span>→</span></button>
   <div class="section-label">Режим</div>
   <div class="mode-grid" id="modeGrid">
     <button class="mode-card active" data-mode="classic"><b>Классика</b><small>Легко и по-доброму</small></button>
@@ -40,6 +41,18 @@
     <button class="count-btn" data-count="100">100</button>
   </div>
   <button class="primary bottom-button" id="launchGame"><span class="btn-label">Запустить игру</span><span class="btn-icon">→</span></button>
+
+</section>
+
+<section id="adminView" class="view">
+  <div class="admin-top">
+    <button class="back-btn" id="adminBack">‹</button>
+    <h2 class="page-title">Вопросы</h2>
+  </div>
+  <div class="admin-note">Редактируй вопросы отдельно для каждого режима и уровня. Изменения сохраняются на этом устройстве.</div>
+  <div class="admin-mode-grid" id="adminModeGrid"></div>
+  <div class="admin-level-grid" id="adminLevelGrid"></div>
+  <div class="admin-list" id="adminList"></div>
 </section>
 
 <section id="turnView" class="view">
@@ -80,6 +93,6 @@
   </div>
 </section>
 </main>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>

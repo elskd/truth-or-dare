@@ -265,6 +265,7 @@ $("againBtn").onclick=()=>{setupDeck();openTurn()};
 $("addPlayer").onclick=()=>{
   if(state.players.length<4){
     state.players.push("");
+    state.playerGenders.push("female");
     renderPlayers();
     const inputs=$("playersList").querySelectorAll(".name-input");
     inputs[inputs.length-1].focus();

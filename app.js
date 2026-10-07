@@ -119,7 +119,7 @@ const cards=[
 const state={view:"start",index:0,played:0,score:0,deck:[...cards]};
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");state.view=id.replace("View","")}
-function buildDeck(){state.deck=[...cards];state.index=0}
+function buildDeck(){state.deck=[...cards.slice(0,90),...cards.slice(-10)];state.index=0}
 function render(){
   if(state.played>=100||state.index>=state.deck.length){finish();return}
   const c=state.deck[state.index];

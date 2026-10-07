@@ -137,11 +137,11 @@ function renderPlayers(){
     row.innerHTML=
       '<span class="player-number">'+(i+1)+'.</span>'+
       '<input class="name-input" type="text" maxlength="24" autocomplete="off" value="'+String(name).replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА">'+
+      (i>1?'<button class="remove-player" aria-label="Удалить">×</button>':'<span class="remove-placeholder"></span>')+
       '<select class="gender-select" aria-label="Пол игрока">'+
         '<option value="female" '+(state.playerGenders[i]==="female"?"selected":"")+'>Ж</option>'+
         '<option value="male" '+(state.playerGenders[i]==="male"?"selected":"")+'>М</option>'+
-      '</select>'+
-      (i>1?'<button class="remove-player" aria-label="Удалить">×</button>':'');
+      '</select>';
     row.querySelector(".name-input").addEventListener("input",e=>{
       state.players[i]=e.target.value;
     });

@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Эля","Никита"],playerGenders:["female","male"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 const modeNames={classic:"Микс",spicy:"Романтика",wild:"Флирт",inferno:"Страсть"};
@@ -138,8 +138,8 @@ function renderPlayers(){
       '<span class="player-number">'+(i+1)+'.</span>'+
       '<input class="name-input" type="text" maxlength="24" autocomplete="off" value="'+String(name).replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА">'+
       '<select class="gender-select" aria-label="Пол игрока">'+
-        '<option value="female" '+(state.playerGenders[i]==="female"?"selected":"")+'>Девушка</option>'+
-        '<option value="male" '+(state.playerGenders[i]==="male"?"selected":"")+'>Парень</option>'+
+        '<option value="female" '+(state.playerGenders[i]==="female"?"selected":"")+'>Ж</option>'+
+        '<option value="male" '+(state.playerGenders[i]==="male"?"selected":"")+'>М</option>'+
       '</select>'+
       (i>1?'<button class="remove-player" aria-label="Удалить">×</button>':'');
     row.querySelector(".name-input").addEventListener("input",e=>{

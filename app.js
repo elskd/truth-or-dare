@@ -392,8 +392,19 @@ function escapeHtml(value){
     .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 
-$("adminEntry").onclick=()=>{
-  renderAdmin();
-  show("adminView");
+const initAdminNavigation=()=>{
+  const entry=$("adminEntry");
+  const back=$("adminBack");
+  if(entry){
+    entry.onclick=null;
+    entry.addEventListener("click",()=>{
+      renderAdmin();
+      show("adminView");
+    });
+  }
+  if(back){
+    back.onclick=null;
+    back.addEventListener("click",()=>show("settingsView"));
+  }
 };
-$("adminBack").onclick=()=>show("settingsView");
+initAdminNavigation();

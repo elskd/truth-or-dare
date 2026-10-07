@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["",""],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Эля","Никита"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 const modeNames={classic:"Классика",spicy:"Остро",wild:"Дико",inferno:"Инферно"};

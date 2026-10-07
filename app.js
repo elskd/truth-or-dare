@@ -270,7 +270,20 @@ $("startSetup").onclick=()=>{
 };
 
 $("settingsTop").onclick=()=>show("settingsView");
+const THEME_KEY="truthDareTheme";
+function applyTheme(theme){
+  const value=theme==="light"?"light":"dark";
+  document.body.classList.toggle("light-theme",value==="light");
+  localStorage.setItem(THEME_KEY,value);
+  document.querySelectorAll(".theme-card").forEach(b=>b.classList.toggle("active",b.dataset.theme===value));
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.setAttribute("content",value==="light"?"#f7f5f0":"#090909");
+}
+applyTheme(localStorage.getItem(THEME_KEY)||"dark");
 $("settingsBack").onclick=()=>show("homeView");
+$("appearanceEntry").onclick=()=>show("appearanceView");
+$("appearanceBack").onclick=()=>show("settingsView");
+document.querySelectorAll(".theme-card").forEach(b=>b.onclick=()=>applyTheme(b.dataset.theme));
 $("setupBack").onclick=()=>show("homeView");
 $("rulesBack").onclick=()=>show("setupView");
 $("rulesStart").onclick=()=>openTurn();

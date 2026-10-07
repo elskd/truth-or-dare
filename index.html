@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090909">
 <title>Только между нами</title>
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
 <div id="loader" class="loader">
@@ -15,7 +15,7 @@
 
 <main class="app">
 <section id="homeView" class="view active">
-  <header class="topbar"><h1>Главная</h1><button class="icon-btn" id="settingsTop" aria-label="Настройки">⚙︎</button></header>
+  <header class="topbar"><h1 class="page-title">Главная</h1><button class="icon-btn" id="settingsTop" aria-label="Настройки">⚙︎</button></header>
   <div class="count-badge"><b id="playerCount">2</b><span>игрока</span></div>
   <div id="playersList" class="players-list"></div>
   <button class="add-player" id="addPlayer" aria-label="Добавить игрока">+</button>
@@ -24,7 +24,7 @@
 
 <section id="settingsView" class="view">
   <button class="back-btn" id="settingsBack">‹</button>
-  <h2>Установи<br>правила</h2>
+  <h2 class="page-title">Установи<br>правила</h2>
   <div class="section-label">Режим</div>
   <div class="mode-grid" id="modeGrid">
     <button class="mode-card active" data-mode="classic"><b>Классика</b><small>Легко и по-доброму</small></button>
@@ -45,7 +45,7 @@
 <section id="turnView" class="view">
   <button class="back-btn" id="turnBack">‹</button>
   <div class="turn-meta"><span>Сейчас играет</span><span>Ход <b id="turnNumber">1</b></span></div>
-  <h2 id="turnPlayer" class="turn-player"></h2>
+  <h2 id="turnPlayer" class="page-title turn-player"></h2>
   <div class="choice-grid">
     <button class="choice-card" data-choice="truth"><span class="choice-symbol quote">“</span><span class="choice-title">Правда</span><span class="choice-subtitle">Нажми, чтобы играть</span></button>
     <button class="choice-card" data-choice="dare"><span class="choice-symbol bolt">ϟ</span><span class="choice-title">Действие</span><span class="choice-subtitle">Нажми, чтобы играть</span></button>
@@ -68,12 +68,12 @@
 <section id="finishView" class="view">
   <div class="finish">
     <div class="question-type">Готово</div>
-    <h2>Ночь<br>удалась.</h2>
+    <h2 class="page-title">Ночь<br>удалась.</h2>
     <p id="finishText"></p>
     <button class="primary" id="againBtn"><span class="btn-label">Сыграть ещё</span><span class="btn-icon">↻</span></button>
   </div>
 </section>
 </main>
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

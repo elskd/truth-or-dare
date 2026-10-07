@@ -28,12 +28,10 @@
   <button class="back-btn" id="setupBack">‹</button>
   <h2 class="page-title">Установи правила</h2>
 
-  <div class="section-label">Режим</div>
-  <div class="mode-grid" id="modeGrid">
-    <button class="mode-card active" data-mode="classic"><b>Микс</b><small>Всего понемногу</small></button>
-    <button class="mode-card" data-mode="spicy"><b>Веселье</b><small>Больше игры</small></button>
-    <button class="mode-card" data-mode="wild"><b>Романтика</b><small>Больше чувств</small></button>
-    <button class="mode-card" data-mode="inferno"><b>18+</b><small>Без фильтров</small></button>
+  <div class="section-label">ДОПОЛНИТЕЛЬНО</div>
+  <div class="option-grid" id="optionGrid">
+    <button class="option-card" data-option="funny"><b>Весёлые</b><small>Больше игры и смеха</small><span>○</span></button>
+    <button class="option-card" data-option="explicit"><b>Откровенные</b><small>Более смелые вопросы и задания</small><span>○</span></button>
   </div>
 
   <div class="section-label count-label">Количество вопросов</div>
@@ -112,8 +110,8 @@
     <button class="back-btn" id="adminBack">‹</button>
     <h2 class="page-title">Вопросы</h2>
   </div>
-  <div class="admin-note">Редактируй вопросы отдельно для каждого режима и уровня. Изменения сохраняются на этом устройстве.</div>
-  <div class="admin-mode-grid" id="adminModeGrid"></div>
+  <div class="admin-note">Добавляй обычные, весёлые и откровенные вопросы в одну общую базу. Уровень определяет, когда вопрос появляется. Изменения сохраняются на этом устройстве.</div>
+  <div class="admin-mode-grid" id="adminModeGrid" style="display:none"></div>
   <div class="admin-level-grid" id="adminLevelGrid"></div>
   <div class="admin-list" id="adminList"></div>
 </section>

@@ -263,6 +263,8 @@ $("startSetup").onclick=()=>{
 $("settingsTop").onclick=()=>show("settingsView");
 $("settingsBack").onclick=()=>show("homeView");
 $("setupBack").onclick=()=>show("homeView");
+$("rulesBack").onclick=()=>show("setupView");
+$("rulesStart").onclick=()=>openTurn();
 $("turnBack").onclick=()=>show("setupView");
 $("questionBack").onclick=()=>openTurn();
 
@@ -275,7 +277,7 @@ if(launchGameButton){
     if(activeMode)state.mode=activeMode.dataset.mode;
     if(activeCount)state.count=Number(activeCount.dataset.count);
     setupDeck();
-    openTurn();
+    show("rulesView");
   };
 }
 

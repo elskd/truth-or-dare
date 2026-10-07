@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],funny:false,explicit:false,count:25,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:25,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 
@@ -161,18 +161,13 @@ function renderPlayers(){
 
 function setupDeck(){
   state.deck=getActiveQuestions()
-    .filter(q=>{
-      if(!q.text.trim())return false;
-      if(q.funny && !state.funny)return false;
-      if(q.explicit && !state.explicit)return false;
-      return true;
-    })
+    .filter(q=>q.text.trim() && q.modes.includes(state.mode))
     .map(q=>({
       type:q.type,
       level:Number(q.level),
       text:q.text,
       gender:q.gender||"both",
-      weight:q.explicit?3:(q.funny?2:1),
+      weight:Number((q.weights&&q.weights[state.mode])||1),
       used:false
     }))
     .sort((a,b)=>a.level-b.level);
@@ -181,7 +176,6 @@ function setupDeck(){
   state.current=null;
   state.currentLevel=1;
 }
-
 
 function validPlayers(){
   return state.players.length>=2 && state.players.every(p=>p.trim());
@@ -277,19 +271,18 @@ const launchGameButton=$("launchGame");
 if(launchGameButton){
   launchGameButton.onclick=()=>{
     if(!validPlayers())return;
+    const activeMode=document.querySelector(".mode-card.active");
     const activeCount=document.querySelector(".count-btn.active");
+    if(activeMode)state.mode=activeMode.dataset.mode;
     if(activeCount)state.count=Number(activeCount.dataset.count);
     setupDeck();
     show("rulesView");
   };
 }
 
-document.querySelectorAll(".option-card").forEach(b=>b.onclick=()=>{
-  const key=b.dataset.option;
-  state[key]=!state[key];
-  b.classList.toggle("active",state[key]);
-  const mark=b.querySelector("span");
-  if(mark)mark.textContent=state[key]?"●":"○";
+if(document.querySelectorAll(".mode-card").length)document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
 });
 
 if(document.querySelectorAll(".count-btn").length)document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
@@ -324,6 +317,7 @@ const OLD_QUESTION_BANK_KEY="truthDareQuestionBanksV1";
 const ADMIN_MODES=[
   ["classic","Микс"],["spicy","Веселье"],["wild","Романтика"],["inferno","18+"]
 ];
+const modeNames={classic:"Микс",spicy:"Веселье",wild:"Романтика",inferno:"18+"};
 let adminMode="classic";
 let adminLevel=1;
 
@@ -334,10 +328,8 @@ function makeDefaultQuestionBank(){
     level:Number(c[1]),
     gender:"both",
     text:c[2],
-    modes:["classic"],
-    weights:{classic:1,spicy:1,wild:1,inferno:1},
-    funny:false,
-    explicit:false
+    modes:["classic","spicy","wild","inferno"],
+    weights:{classic:1,spicy:1,wild:1,inferno:1}
   }));
 }
 
@@ -353,15 +345,13 @@ function migrateQuestionBank(){
           level:Math.min(5,Math.max(1,Number(q.level)||1)),
           gender:["both","female","male"].includes(q.gender)?q.gender:"both",
           text:String(q.text||"").trim(),
-          modes:["classic"],
+          modes:Array.isArray(q.modes)&&q.modes.length?q.modes.filter(m=>ADMIN_MODES.some(([id])=>id===m)):ADMIN_MODES.map(([id])=>id),
           weights:{
             classic:Number(q.weights?.classic)||1,
             spicy:Number(q.weights?.spicy)||1,
             wild:Number(q.weights?.wild)||1,
             inferno:Number(q.weights?.inferno)||1
-          },
-          funny:q.funny===true,
-          explicit:q.explicit===true
+          }
         }));
       if(normalized.length>0){
         const hasQuestionsForMode=ADMIN_MODES.every(([mode])=>
@@ -406,10 +396,8 @@ function migrateQuestionBank(){
               level:normalized.level,
               gender:normalized.gender,
               text:normalized.text,
-              modes:["classic"],
-              weights:{classic:1,spicy:1,wild:1,inferno:1},
-              funny:false,
-              explicit:false
+              modes:[],
+              weights:{classic:1,spicy:1,wild:1,inferno:1}
             };
             map.set(key,existing);
           }
@@ -506,114 +494,65 @@ const initAdminNavigation=()=>{
   }
 };
 initAdminNavigation();function renderAdmin(){
+  const modeGrid=$("adminModeGrid");
   const levelGrid=$("adminLevelGrid");
   const list=$("adminList");
+
+  modeGrid.style.display="";
+  modeGrid.innerHTML=ADMIN_MODES.map(([id,name])=>
+    '<button class="admin-tab '+(id===adminMode?"active":"")+'" data-admin-mode="'+id+'">'+name+'</button>'
+  ).join("");
 
   levelGrid.innerHTML=[1,2,3,4,5].map(level=>
     '<button class="admin-tab '+(level===adminLevel?"active":"")+'" data-admin-level="'+level+'">Уровень '+level+'</button>'
   ).join("");
 
-  list.innerHTML=
-    '<div class="admin-add">'+
-      '<div class="admin-add-title">Добавить вопрос</div>'+
-      '<div class="admin-check-grid">'+
-        '<label class="admin-check"><input type="checkbox" id="adminAddFunny"><span>Весёлый</span></label>'+
-        '<label class="admin-check"><input type="checkbox" id="adminAddExplicit"><span>Откровенный</span></label>'+
-      '</div>'+
-      '<select id="adminAddLevel" class="admin-select">'+
-        [1,2,3,4,5].map(level=>'<option value="'+level+'" '+(level===adminLevel?"selected":"")+'>Уровень '+level+'</option>').join("")+
-      '</select>'+
-      '<select id="adminAddType" class="admin-select">'+
-        '<option value="truth">Правда</option>'+
-        '<option value="dare">Действие</option>'+
-      '</select>'+
-      '<select id="adminAddGender" class="admin-select">'+
-        '<option value="both" selected>Для обоих</option>'+
-        '<option value="female">Для девушек</option>'+
-        '<option value="male">Для парней</option>'+
-      '</select>'+
-      '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
-      '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button>'+
-    '</div>';
+  const modeChecks=ADMIN_MODES.map(([id,name])=>
+    '<label class="admin-check"><input type="checkbox" value="'+id+'" checked> <span>'+name+'</span></label>'
+  ).join("");
 
-  const questions=questionBank
-    .filter(q=>Number(q.level)===adminLevel)
-    .sort((a,b)=>{
-      const typeOrder={truth:0,dare:1};
-      return (typeOrder[a.type]??9)-(typeOrder[b.type]??9);
-    });
+  list.innerHTML='<div class="admin-add"><div class="admin-add-title">Добавить вопрос</div><div class="admin-check-grid">'+modeChecks+'</div>'+
+    '<select id="adminAddLevel" class="admin-select">'+[1,2,3,4,5].map(level=>'<option value="'+level+'" '+(level===adminLevel?"selected":"")+'>Уровень '+level+'</option>').join("")+'</select>'+
+    '<select id="adminAddType" class="admin-select"><option value="truth">Правда</option><option value="dare">Действие</option></select>'+
+    '<select id="adminAddGender" class="admin-select"><option value="both" selected>Для обоих</option><option value="female">Для девушек</option><option value="male">Для парней</option></select>'+
+    '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
+    '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button></div>';
+
+  const questions=questionBank.filter(q=>Number(q.level)===adminLevel && q.modes.includes(adminMode)).sort((a,b)=>({truth:0,dare:1}[a.type]??9)-({truth:0,dare:1}[b.type]??9));
 
   list.innerHTML+=questions.map((q,index)=>{
-    return '<div class="admin-card">'+
-      '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
-      (q.type==="truth"?"Правда":"Действие")+
-      '</span></div>'+
-      '<div class="admin-check-grid question-modes">'+
-        '<label class="admin-check"><input type="checkbox" data-special="funny" data-question="'+q.id+'" '+(q.funny===true?"checked":"")+'><span>Весёлый</span></label>'+
-        '<label class="admin-check"><input type="checkbox" data-special="explicit" data-question="'+q.id+'" '+(q.explicit===true?"checked":"")+'><span>Откровенный</span></label>'+
-      '</div>'+
-      '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'">'+
-        '<option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option>'+
-        '<option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option>'+
-        '<option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option>'+
-      '</select>'+
-      '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea>'+
-      '<button class="admin-save" data-save-id="'+q.id+'">Сохранить</button>'+
-    '</div>';
-  }).join("") || '<div class="admin-note">В этом уровне пока нет вопросов.</div>';
+    const selectedWeight=Number(q.weights?.[adminMode]||1);
+    return '<div class="admin-card"><div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
+      '<div class="admin-card-label">Режимы</div><div class="admin-check-grid question-modes">'+
+      ADMIN_MODES.map(([id,name])=>'<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>').join("")+
+      '</div><div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+
+      '<select class="admin-select" data-weight-id="'+q.id+'"><option value="1" '+(selectedWeight===1?"selected":"")+'>1 · обычный</option><option value="2" '+(selectedWeight===2?"selected":"")+'>2 · чаще</option><option value="3" '+(selectedWeight===3?"selected":"")+'>3 · сильно чаще</option></select>'+
+      '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'"><option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option><option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option><option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option></select>'+
+      '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea><button class="admin-save" data-save-id="'+q.id+'">Сохранить</button></div>';
+  }).join("")||'<div class="admin-note">В этом уровне пока нет вопросов.</div>';
 
-  levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{
-    adminLevel=Number(b.dataset.adminLevel);
-    renderAdmin();
-  });
+  modeGrid.querySelectorAll("[data-admin-mode]").forEach(b=>b.onclick=()=>{adminMode=b.dataset.adminMode;renderAdmin()});
+  levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{adminLevel=Number(b.dataset.adminLevel);renderAdmin()});
 
   $("adminAddQuestion").onclick=()=>{
-    const text=$("adminNewQuestion").value.trim();
-    const level=Number($("adminAddLevel").value);
-    const type=$("adminAddType").value;
-    const gender=$("adminAddGender").value;
-    if(!text){
-      $("adminNewQuestion").focus();
-      return;
-    }
-
-    const q={
-      id:getNextQuestionId(),
-      type,
-      level,
-      gender,
-      text,
-      modes:["classic"],
-      weights:{classic:1,spicy:1,wild:1,inferno:1},
-      funny:$("adminAddFunny").checked,
-      explicit:$("adminAddExplicit").checked
-    };
-    questionBank.push(q);
-    saveQuestionBank();
-    adminLevel=level;
-    renderAdmin();
+    const text=$("adminNewQuestion").value.trim(), level=Number($("adminAddLevel").value), type=$("adminAddType").value, gender=$("adminAddGender").value;
+    const modes=ADMIN_MODES.filter(([id])=>list.querySelector('.admin-check input[value="'+id+'"]')?.checked).map(([id])=>id);
+    if(!text||!modes.length){$("adminNewQuestion").focus();return}
+    questionBank.push({id:getNextQuestionId(),type,level,gender,text,modes,weights:{classic:1,spicy:1,wild:1,inferno:1}});
+    saveQuestionBank();adminMode=modes[0];adminLevel=level;renderAdmin();
   };
 
-  list.querySelectorAll("[data-special][data-question]").forEach(input=>input.onchange=()=>{
-    const id=Number(input.dataset.question);
-    const q=questionBank.find(x=>x.id===id);
-    if(!q)return;
-    q[input.dataset.special]=input.checked;
-    saveQuestionBank();
+  list.querySelectorAll("[data-mode-toggle][data-question]").forEach(input=>input.onchange=()=>{
+    const q=questionBank.find(x=>x.id===Number(input.dataset.question));if(!q)return;
+    const mode=input.dataset.modeToggle;
+    if(input.checked){if(!q.modes.includes(mode))q.modes.push(mode);if(!q.weights)q.weights={classic:1,spicy:1,wild:1,inferno:1};if(!q.weights[mode])q.weights[mode]=1}
+    else{q.modes=q.modes.filter(x=>x!==mode);if(!q.modes.length){input.checked=true;return}}
+    saveQuestionBank();renderAdmin();
   });
 
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
-    const id=Number(b.dataset.saveId);
-    const area=list.querySelector('textarea[data-question-id="'+id+'"]');
-    const q=questionBank.find(x=>x.id===id);
-    const genderSelect=list.querySelector('[data-gender-id="'+id+'"]');
-    if(q && area){
-      q.text=area.value.trim();
-      q.gender=genderSelect?genderSelect.value:"both";
-      q.modes=["classic"];
-      saveQuestionBank();
-      b.textContent="Сохранено";
-      setTimeout(()=>{b.textContent="Сохранить"},900);
-    }
+    const id=Number(b.dataset.saveId), area=list.querySelector('textarea[data-question-id="'+id+'"]'), q=questionBank.find(x=>x.id===id);
+    const genderSelect=list.querySelector('[data-gender-id="'+id+'"]'), weightSelect=list.querySelector('[data-weight-id="'+id+'"]');
+    if(q&&area){q.text=area.value.trim();q.gender=genderSelect?genderSelect.value:"both";if(!q.weights)q.weights={classic:1,spicy:1,wild:1,inferno:1};q.weights[adminMode]=weightSelect?Number(weightSelect.value):1;saveQuestionBank();b.textContent="Сохранено";setTimeout(()=>b.textContent="Сохранить",900)}
   });
 }

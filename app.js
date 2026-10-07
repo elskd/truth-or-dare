@@ -119,7 +119,6 @@ const cards=[
 const state={view:"home",players:["",""],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
-const modeMax={classic:2,spicy:3,wild:4,inferno:5};
 const modeNames={classic:"Классика",spicy:"Остро",wild:"Дико",inferno:"Инферно"};
 
 function show(id){
@@ -127,43 +126,63 @@ function show(id){
   $(id).classList.add("active");
   state.view=id.replace("View","");
 }
+
 function renderPlayers(){
   const list=$("playersList");
   list.innerHTML="";
   state.players.forEach((name,i)=>{
     const row=document.createElement("div");
     row.className="player-row";
-    row.innerHTML='<div class="player-mark">'+(i+1)+". "+'</div><input class="name-input" value="'+name.replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА"><button class="gender active">'+(i%2===0?"♂":"♀")+'</button><button class="gender">'+(i%2===0?"♀":"♂")+'</button>'+(i>1?'<button class="remove-player">×</button>':'<span></span>');
-    row.querySelector(".name-input").addEventListener("input",e=>state.players[i]=e.target.value);
+    row.innerHTML=
+      '<span class="player-number">'+(i+1)+'.</span>'+
+      '<input class="name-input" type="text" maxlength="24" autocomplete="off" value="'+String(name).replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА">'+
+      (i>1?'<button class="remove-player" aria-label="Удалить">×</button>':'');
+    row.querySelector(".name-input").addEventListener("input",e=>{
+      state.players[i]=e.target.value;
+    });
     const remove=row.querySelector(".remove-player");
-    if(remove)remove.onclick=()=>{state.players.splice(i,1);renderPlayers()};
+    if(remove)remove.onclick=()=>{
+      state.players.splice(i,1);
+      renderPlayers();
+    };
     list.appendChild(row);
   });
   $("playerCount").textContent=state.players.length;
 }
+
 function setupDeck(){
-  const eligible=cards;
-  state.deck=eligible.map(c=>[c[0],c[1],c[2],false]);
+  // Берём только наши основные 100 карточек; дикие карты остаются отдельным дополнительным пулом.
+  const main=cards.filter(c=>c[0]!=="wild");
+  state.deck=main.slice(0,100).map(c=>[c[0],c[1],c[2],false]);
   state.played=0;
   state.turn=0;
   state.current=null;
 }
+
+function validPlayers(){
+  return state.players.length>=2 && state.players.every(p=>p.trim());
+}
+
 function openTurn(){
   if(state.played>=state.count){finish();return}
   show("turnView");
   $("turnPlayer").textContent=state.players[state.turn%state.players.length];
   $("turnNumber").textContent=String(state.played+1);
 }
+
 function pick(choice){
-  const remaining=state.deck.filter((c,i)=>!c.used);
+  const remaining=state.deck.filter(c=>!c[3]);
   if(!remaining.length){finish();return}
+
   let options=remaining;
   if(choice==="truth")options=remaining.filter(c=>c[0]==="truth");
   if(choice==="dare")options=remaining.filter(c=>c[0]==="dare");
   if(!options.length)options=remaining;
-  const c=choice==="random"?options[Math.floor(Math.random()*options.length)]:options[0];
-  c.used=true;
+
+  const c=options[Math.floor(Math.random()*options.length)];
+  c[3]=true;
   state.current=c;
+
   $("questionPlayer").textContent=state.players[state.turn%state.players.length];
   $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
   $("questionLevel").textContent=c[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+c[1];
@@ -171,34 +190,75 @@ function pick(choice){
   $("questionText").textContent=c[2];
   show("questionView");
 }
+
 function nextQuestion(){
   state.played++;
   state.turn++;
   if(state.played>=state.count){finish();return}
   openTurn();
 }
+
 function replaceQuestion(){
-  const current=state.current;
-  if(current)current.used=false;
+  if(state.current)state.current[3]=false;
   pick("random");
 }
+
 function finish(){
   show("finishView");
-  $("finishText").textContent=modeNames[state.mode]+" · "+state.count+" вопросов · "+state.players.join(" × ");
+  $("finishText").textContent=modeNames[state.mode]+" · "+state.count+" вопросов";
 }
-$("startSetup").onclick=()=>show("settingsView");
+
+$("startSetup").onclick=()=>{
+  if(!validPlayers()){
+    const firstEmpty=state.players.findIndex(p=>!p.trim());
+    if(firstEmpty>=0){
+      const input=$("playersList").querySelectorAll(".name-input")[firstEmpty];
+      input.focus();
+    }
+    return;
+  }
+  show("settingsView");
+};
+
 $("settingsTop").onclick=()=>show("settingsView");
 $("settingsBack").onclick=()=>show("homeView");
 $("turnBack").onclick=()=>show("settingsView");
 $("questionBack").onclick=()=>openTurn();
-$("launchGame").onclick=()=>{state.mode=document.querySelector(".mode-card.active").dataset.mode;state.count=Number(document.querySelector(".count-btn.active").dataset.count);setupDeck();openTurn()};
-$("modeGrid").querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
-$("countGrid").querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
+
+$("launchGame").onclick=()=>{
+  if(!validPlayers())return;
+  state.mode=document.querySelector(".mode-card.active").dataset.mode;
+  state.count=Number(document.querySelector(".count-btn.active").dataset.count);
+  setupDeck();
+  openTurn();
+};
+
+document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+});
+
+document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+});
+
 document.querySelectorAll(".choice-card").forEach(b=>b.onclick=()=>pick(b.dataset.choice));
 $("nextQuestion").onclick=nextQuestion;
 $("replaceBtn").onclick=replaceQuestion;
 $("againBtn").onclick=()=>{setupDeck();openTurn()};
-$("addPlayer").onclick=()=>{if(state.players.length<4){state.players.push("");renderPlayers()}};
+$("addPlayer").onclick=()=>{
+  if(state.players.length<4){
+    state.players.push("");
+    renderPlayers();
+    const inputs=$("playersList").querySelectorAll(".name-input");
+    inputs[inputs.length-1].focus();
+  }
+};
+
 renderPlayers();
 
-setTimeout(()=>{$("loader").classList.add("hidden");show("homeView")},1600);
+setTimeout(()=>{
+  $("loader").classList.add("hidden");
+  show("homeView");
+},1500);

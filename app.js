@@ -116,26 +116,90 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"start",index:0,played:0,score:0,deck:[...cards]};
+const state={view:"home",players:["Никита","Эля"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
+
 const $=id=>document.getElementById(id);
-function show(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");state.view=id.replace("View","")}
-function buildDeck(){state.deck=[...cards.slice(0,90),...cards.slice(-10)];state.index=0}
-function render(){
-  if(state.played>=100||state.index>=state.deck.length){finish();return}
-  const c=state.deck[state.index];
-  const player=state.played%2===0?"ЭЛЯ":"НИКИТА";
-  $("levelLabel").textContent=(c[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+c[1])+" · ХОД "+player;
-  $("progressLabel").textContent=String(state.played+1).padStart(2,"0")+" / 100";
-  $("progressBar").style.width=Math.min(100,state.played+1)+"%";
-  $("cardType").textContent=c[0]==="truth"?"ПРАВДА":c[0]==="dare"?"ДЕЙСТВИЕ":"СЕКРЕТ";
-  $("cardNumber").textContent=String(state.played+1).padStart(2,"0");
-  $("cardText").textContent=c[2];
+const modeMax={classic:2,spicy:3,wild:4,inferno:5};
+const modeNames={classic:"Классика",spicy:"Остро",wild:"Дико",inferno:"Инферно"};
+
+function show(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $(id).classList.add("active");
+  state.view=id.replace("View","");
 }
-function next(done){if(done)state.score++;state.played++;state.index++;render()}
-function finish(){show("finishView");$("finishText").textContent="Вы прошли "+state.played+" карточек и собрали "+state.score+" выполнений. Дальше ночь уже ваша."}
-$("startBtn").onclick=()=>{state.played=0;state.score=0;buildDeck();show("gameView");render()};
-$("nextBtn").onclick=()=>next(false);
-$("doneBtn").onclick=()=>next(true);
-$("againBtn").onclick=()=>{state.played=0;state.score=0;buildDeck();show("gameView");render()};
-$("resetBtn").onclick=()=>{state.played=0;state.score=0;show("startView")};
-$("backBtn").onclick=()=>show("startView");
+function renderPlayers(){
+  const list=$("playersList");
+  list.innerHTML="";
+  state.players.forEach((name,i)=>{
+    const row=document.createElement("div");
+    row.className="player-row";
+    row.innerHTML='<div class="player-mark">'+(i%2===0?"Н.":"Э.")+'</div><input class="name-input" value="'+name.replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА"><button class="gender active">'+(i%2===0?"♂":"♀")+'</button><button class="gender">'+(i%2===0?"♀":"♂")+'</button>'+(i>1?'<button class="remove-player">×</button>':'<span></span>');
+    row.querySelector(".name-input").addEventListener("input",e=>state.players[i]=e.target.value||("Игрок "+(i+1)));
+    const remove=row.querySelector(".remove-player");
+    if(remove)remove.onclick=()=>{state.players.splice(i,1);renderPlayers()};
+    list.appendChild(row);
+  });
+  $("playerCount").textContent=state.players.length;
+}
+function setupDeck(){
+  const maxLevel=modeMax[state.mode];
+  const eligible=cards.filter(c=>c[1]<=maxLevel);
+  state.deck=[...eligible];
+  state.played=0;
+  state.turn=0;
+  state.current=null;
+}
+function openTurn(){
+  if(state.played>=state.count){finish();return}
+  show("turnView");
+  $("turnPlayer").textContent=state.players[state.turn%state.players.length];
+  $("turnNumber").textContent=String(state.played+1);
+}
+function pick(choice){
+  const remaining=state.deck.filter((c,i)=>!c.used);
+  if(!remaining.length){finish();return}
+  let options=remaining;
+  if(choice==="truth")options=remaining.filter(c=>c[0]==="truth");
+  if(choice==="dare")options=remaining.filter(c=>c[0]==="dare");
+  if(!options.length)options=remaining;
+  const c=choice==="random"?options[Math.floor(Math.random()*options.length)]:options[0];
+  c.used=true;
+  state.current=c;
+  $("questionPlayer").textContent=state.players[state.turn%state.players.length];
+  $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
+  $("questionLevel").textContent=c[0]==="wild"?"ДИКАЯ КАРТА":"УРОВЕНЬ "+c[1];
+  $("questionType").textContent=c[0]==="truth"?"ПРАВДА":c[0]==="dare"?"ДЕЙСТВИЕ":"ДИКАЯ КАРТА";
+  $("questionText").textContent=c[2];
+  show("questionView");
+}
+function nextQuestion(){
+  state.played++;
+  state.turn++;
+  if(state.played>=state.count){finish();return}
+  openTurn();
+}
+function replaceQuestion(){
+  const current=state.current;
+  if(current)current.used=false;
+  pick("random");
+}
+function finish(){
+  show("finishView");
+  $("finishText").textContent=modeNames[state.mode]+" · "+state.count+" вопросов · "+state.players.join(" × ");
+}
+$("startSetup").onclick=()=>show("settingsView");
+$("settingsTop").onclick=()=>show("settingsView");
+$("settingsBack").onclick=()=>show("homeView");
+$("turnBack").onclick=()=>show("settingsView");
+$("questionBack").onclick=()=>openTurn();
+$("launchGame").onclick=()=>{state.mode=document.querySelector(".mode-card.active").dataset.mode;state.count=Number(document.querySelector(".count-btn.active").dataset.count);setupDeck();openTurn()};
+$("modeGrid").querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
+$("countGrid").querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active")});
+document.querySelectorAll(".choice-card").forEach(b=>b.onclick=()=>pick(b.dataset.choice));
+$("nextQuestion").onclick=nextQuestion;
+$("replaceBtn").onclick=replaceQuestion;
+$("againBtn").onclick=()=>{setupDeck();openTurn()};
+$("addPlayer").onclick=()=>{if(state.players.length<4){state.players.push("Игрок "+(state.players.length+1));renderPlayers()}};
+renderPlayers();
+
+setTimeout(()=>{$("loader").classList.add("hidden");show("homeView")},1600);

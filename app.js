@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Эля","Никита"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Эля","Никита"],playerGenders:["female","male"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 const modeNames={classic:"Микс",spicy:"Романтика",wild:"Флирт",inferno:"Страсть"};
@@ -131,18 +131,27 @@ function renderPlayers(){
   const list=$("playersList");
   list.innerHTML="";
   state.players.forEach((name,i)=>{
+    if(!state.playerGenders[i])state.playerGenders[i]="female";
     const row=document.createElement("div");
     row.className="player-row";
     row.innerHTML=
       '<span class="player-number">'+(i+1)+'.</span>'+
       '<input class="name-input" type="text" maxlength="24" autocomplete="off" value="'+String(name).replace(/"/g,"&quot;")+'" placeholder="ИМЯ ИГРОКА">'+
+      '<select class="gender-select" aria-label="Пол игрока">'+
+        '<option value="female" '+(state.playerGenders[i]==="female"?"selected":"")+'>Девушка</option>'+
+        '<option value="male" '+(state.playerGenders[i]==="male"?"selected":"")+'>Парень</option>'+
+      '</select>'+
       (i>1?'<button class="remove-player" aria-label="Удалить">×</button>':'');
     row.querySelector(".name-input").addEventListener("input",e=>{
       state.players[i]=e.target.value;
     });
+    row.querySelector(".gender-select").addEventListener("change",e=>{
+      state.playerGenders[i]=e.target.value;
+    });
     const remove=row.querySelector(".remove-player");
     if(remove)remove.onclick=()=>{
       state.players.splice(i,1);
+      state.playerGenders.splice(i,1);
       renderPlayers();
     };
     list.appendChild(row);
@@ -171,7 +180,7 @@ function openTurn(){
 }
 
 function pick(choice){
-  const remaining=state.deck.filter(c=>!c[3]);
+  const remaining=state.deck.filter(c=>!c[4]);
   if(!remaining.length){finish();return}
 
   let options=remaining;
@@ -199,7 +208,7 @@ function nextQuestion(){
 }
 
 function replaceQuestion(){
-  if(state.current)state.current[3]=false;
+  if(state.current)state.current[4]=false;
   pick("random");
 }
 
@@ -282,6 +291,7 @@ function makeDefaultBanks(){
     id:i,
     type:c[0],
     level:Number(c[1]),
+    gender:"both",
     text:c[2]
   }));
   const result={};
@@ -293,7 +303,10 @@ function makeDefaultBanks(){
 function loadQuestionBanks(){
   try{
     const saved=JSON.parse(localStorage.getItem(QUESTION_BANK_KEY)||"null");
-    if(saved && ADMIN_MODES.every(([m])=>Array.isArray(saved[m]))) return saved;
+    if(saved && ADMIN_MODES.every(([m])=>Array.isArray(saved[m]))){
+      ADMIN_MODES.forEach(([m])=>saved[m]=saved[m].map(q=>({...q,gender:q.gender||"both"})));
+      return saved;
+    }
   }catch(e){}
   return makeDefaultBanks();
 }
@@ -310,7 +323,7 @@ function getActiveQuestions(){
 function setupDeck(){
   state.deck=getActiveQuestions()
     .filter(q=>q.text.trim())
-    .map(q=>[q.type,q.level,q.text,false])
+    .map(q=>[q.type,q.level,q.text,q.gender||"both",false])
     .sort((a,b)=>a[1]-b[1]);
   state.played=0;
   state.turn=0;
@@ -323,21 +336,22 @@ function pick(choice){
   if(!remaining.length){finish();return;}
 
   const minLevel=state.currentLevel||1;
-  let pool=remaining.filter(c=>c[1]>=minLevel);
+  const playerGender=state.playerGenders[state.turn%state.players.length]||"female";
+  let pool=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender));
   if(!pool.length){finish();return;}
 
   if(choice==="truth" || choice==="dare"){
     const typed=pool.filter(c=>c[0]===choice);
     if(typed.length) pool=typed;
     else{
-      const next=remaining.filter(c=>c[1]>=minLevel && c[0]===choice);
+      const next=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender) && c[0]===choice);
       if(next.length) pool=next;
-      else pool=remaining.filter(c=>c[1]>=minLevel);
+      else pool=remaining.filter(c=>c[1]>=minLevel && (c[3]==="both" || c[3]===playerGender));
     }
   }
 
   const next=pool[0];
-  next[3]=true;
+  next[4]=true;
   state.current=next;
   state.currentLevel=next[1];
 
@@ -377,6 +391,11 @@ function renderAdmin(){
         '<option value="truth">Правда</option>'+
         '<option value="dare">Действие</option>'+
       '</select>'+
+      '<select id="adminAddGender" class="admin-select">'+
+        '<option value="both" selected>Для обоих</option>'+
+        '<option value="female">Для девушек</option>'+
+        '<option value="male">Для парней</option>'+
+      '</select>'+
       '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
       '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button>'+
     '</div>';
@@ -393,6 +412,11 @@ function renderAdmin(){
       '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
       (q.type==="truth"?"Правда":q.type==="dare"?"Действие":"Дикая карта")+
       '</span></div>'+
+      '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'">'+
+        '<option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option>'+
+        '<option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option>'+
+        '<option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option>'+
+      '</select>'+
       '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea>'+
       '<button class="admin-save" data-save-id="'+q.id+'">Сохранить</button>'+
     '</div>'
@@ -413,6 +437,7 @@ function renderAdmin(){
     const mode=$("adminAddMode").value;
     const level=Number($("adminAddLevel").value);
     const type=$("adminAddType").value;
+    const gender=$("adminAddGender").value;
 
     if(!text){
       $("adminNewQuestion").focus();
@@ -427,6 +452,7 @@ function renderAdmin(){
       id:nextId,
       type,
       level,
+      gender,
       text
     });
 
@@ -440,9 +466,11 @@ function renderAdmin(){
     const id=Number(b.dataset.saveId);
     const area=list.querySelector('textarea[data-question-id="'+id+'"]');
     const q=(questionBanks[adminMode]||[]).find(x=>x.id===id);
+    const genderSelect=list.querySelector('[data-gender-id="'+id+'"]');
 
     if(q && area){
       q.text=area.value.trim();
+      q.gender=genderSelect?genderSelect.value:"both";
       saveQuestionBanks();
       b.textContent="Сохранено";
       setTimeout(()=>{b.textContent="Сохранить"},900);

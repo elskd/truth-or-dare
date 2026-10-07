@@ -532,7 +532,7 @@ initAdminNavigation();function renderAdmin(){
 
   list.innerHTML+=questions.map((q,index)=>{
     const selectedWeight=q.weights?.[adminMode]??1;
-    return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-drag" aria-hidden="true">≡</span><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-order-buttons"><button type="button" class="admin-order-btn" data-move-up="'+q.id+'">↑</button><button type="button" class="admin-order-btn" data-move-down="'+q.id+'">↓</button></span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
+    return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-order-buttons"><button type="button" class="admin-order-btn" data-move-up="'+q.id+'">↑</button><button type="button" class="admin-order-btn" data-move-down="'+q.id+'">↓</button></span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
       '<div class="admin-card-label">Режимы</div><div class="admin-check-grid question-modes">'+
       ADMIN_MODES.map(([id,name])=>'<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>').join("")+
       '</div><div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+

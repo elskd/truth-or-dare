@@ -666,3 +666,6 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 
 /* DRAG HANDLE */
 .admin-drag{touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none!important;cursor:grab!important;-webkit-user-drag:none!important}
+
+
+.admin-card-head{position:relative}.admin-order-buttons{margin-left:auto;display:flex;gap:5px}.admin-order-btn{width:32px;height:32px;padding:0;border:1px solid #333;border-radius:9px;background:#111;color:var(--milk);font:inherit;font-size:17px;line-height:1}.admin-order-btn:active{background:#222;transform:scale(.96)}

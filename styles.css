@@ -227,3 +227,12 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
   #turnView .turn-row{gap:12px}
   #turnView .turn-player{font-size:32px !important;line-height:36px !important}
 }
+
+/* Loader failsafe: page must remain accessible even if JS is delayed */
+.loader{
+  animation:loaderFailsafe 1.6s forwards;
+}
+@keyframes loaderFailsafe{
+  0%,92%{opacity:1;visibility:visible;pointer-events:auto}
+  100%{opacity:0;visibility:hidden;pointer-events:none}
+}

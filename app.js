@@ -159,19 +159,63 @@ function renderPlayers(){
   $("playerCount").textContent=state.players.length;
 }
 
+function selectQuestionsForLevel(source,quota){
+  const pool=source.map(q=>({
+    type:q.type,
+    level:Number(q.level),
+    text:q.text,
+    gender:q.gender||"both",
+    weight:(q.weights&&q.weights[state.mode])||1,
+    order:getQuestionOrder(q,state.mode),
+    used:false
+  }));
+
+  const selected=[];
+  const guaranteed=pool.filter(q=>q.weight==="guaranteed" || Number(q.weight)===999999);
+
+  while(selected.length<quota && guaranteed.length){
+    const index=Math.floor(Math.random()*guaranteed.length);
+    selected.push(guaranteed.splice(index,1)[0]);
+  }
+
+  const addWeighted=()=>{
+    const candidates=pool.filter(q=>!selected.includes(q));
+    if(!candidates.length)return false;
+    const next=weightedPick(candidates);
+    selected.push(next);
+    return true;
+  };
+
+  // Keep both buttons usable on every level whenever both types exist.
+  if(quota>=2){
+    ["truth","dare"].forEach(type=>{
+      if(selected.length>=quota)return;
+      if(!selected.some(q=>q.type===type)){
+        const candidates=pool.filter(q=>q.type===type && !selected.includes(q));
+        if(candidates.length){
+          const next=weightedPick(candidates);
+          selected.push(next);
+        }
+      }
+    });
+  }
+
+  while(selected.length<quota && addWeighted()){}
+
+  return selected.sort((a,b)=>a.order-b.order||a.type.localeCompare(b.type));
+}
+
 function setupDeck(){
-  state.deck=getActiveQuestions()
-    .filter(q=>q.text.trim() && q.modes.includes(state.mode))
-    .map(q=>({
-      type:q.type,
-      level:Number(q.level),
-      text:q.text,
-      gender:q.gender||"both",
-      weight:(q.weights&&q.weights[state.mode])||1,
-      order:getQuestionOrder(q,state.mode),
-      used:false
-    }))
-    .sort((a,b)=>a.level-b.level||a.order-b.order);
+  const quota=state.count/5;
+  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+
+  state.deck=[];
+  for(let level=1;level<=5;level++){
+    const source=all.filter(q=>Number(q.level)===level);
+    const selected=selectQuestionsForLevel(source,quota);
+    state.deck.push(...selected);
+  }
+
   state.played=0;
   state.turn=0;
   state.current=null;
@@ -213,6 +257,8 @@ function pick(choice){
   );
   if(!eligible.length){finish();return;}
 
+  // Levels are strictly sequential: all questions from level 1,
+  // then all from level 2, and so on.
   const currentLevel=Math.min(...eligible.map(c=>c.level));
   state.currentLevel=currentLevel;
 
@@ -220,11 +266,11 @@ function pick(choice){
   if(choice==="truth" || choice==="dare"){
     const typed=pool.filter(c=>c.type===choice);
     if(!typed.length){
-      const typedAnyLevel=eligible.filter(c=>c.type===choice);
-      if(typedAnyLevel.length) pool=typedAnyLevel;
-    }else{
-      pool=typed;
+      // The selected deck guarantees both types when the bank has them.
+      // Never jump to another level or substitute the opposite type.
+      return;
     }
+    pool=typed;
   }
 
   const next=weightedPick(pool);
@@ -248,7 +294,7 @@ function nextQuestion(){
 }
 
 function replaceQuestion(){
-  if(state.current)state.current[4]=false;
+  if(state.current)state.current.used=false;
   pick("random");
 }
 
@@ -298,6 +344,19 @@ if(launchGameButton){
     const activeCount=document.querySelector(".count-btn.active");
     if(activeMode)state.mode=activeMode.dataset.mode;
     if(activeCount)state.count=Number(activeCount.dataset.count);
+
+    const quota=state.count/5;
+    const available=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+    const missing=[];
+    for(let level=1;level<=5;level++){
+      const amount=available.filter(q=>Number(q.level)===level).length;
+      if(amount<quota)missing.push("Уровень "+level+": "+amount+" из "+quota);
+    }
+    if(missing.length){
+      alert("В выбранном режиме недостаточно вопросов для выбранного количества.\\n\\n"+missing.join("\\n"));
+      return;
+    }
+
     setupDeck();
     show("rulesView");
   };

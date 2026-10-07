@@ -397,15 +397,13 @@ const initAdminNavigation=()=>{
   const entry=$("adminEntry");
   const back=$("adminBack");
   if(entry){
-    entry.onclick=null;
-    entry.addEventListener("click",()=>{
-      renderAdmin();
+    entry.onclick=()=>{
       show("adminView");
-    });
+      try{ renderAdmin(); }catch(err){ console.error("Admin render error:",err); }
+    };
   }
   if(back){
-    back.onclick=null;
-    back.addEventListener("click",()=>show("settingsView"));
+    back.onclick=()=>show("settingsView");
   }
 };
 initAdminNavigation();function renderAdmin(){

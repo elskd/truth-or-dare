@@ -282,7 +282,7 @@ setTimeout(()=>{
 /* QUESTION BANK + ADMIN */
 const QUESTION_BANK_KEY="truthDareQuestionBanksV1";
 const ADMIN_MODES=[
-  ["classic","Микс"],["spicy","Романтика"],["wild","Флирт"],["inferno","Страсть"]
+  ["classic","Микс"],["spicy","Веселье"],["wild","Романтика"],["inferno","18+"]
 ];
 let adminMode="classic";
 let adminLevel=1;

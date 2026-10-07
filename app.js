@@ -217,15 +217,13 @@ $("startSetup").onclick=()=>{
     }
     return;
   }
-  state.mode="classic";
-  state.count=20;
-  setupDeck();
-  openTurn();
+  show("setupView");
 };
 
 $("settingsTop").onclick=()=>show("settingsView");
 $("settingsBack").onclick=()=>show("homeView");
-$("turnBack").onclick=()=>show("settingsView");
+$("setupBack").onclick=()=>show("homeView");
+$("turnBack").onclick=()=>show("setupView");
 $("questionBack").onclick=()=>openTurn();
 
 const launchGameButton=$("launchGame");
@@ -274,7 +272,7 @@ setTimeout(()=>{
 /* QUESTION BANK + ADMIN */
 const QUESTION_BANK_KEY="truthDareQuestionBanksV1";
 const ADMIN_MODES=[
-  ["classic","Классика"],["spicy","Остро"],["wild","Дико"],["inferno","Инферно"]
+  ["classic","Микс"],["spicy","Романтика"],["wild","Флирт"],["inferno","Страсть"]
 ];
 let adminMode="classic";
 let adminLevel=1;

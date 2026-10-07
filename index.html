@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090909">
 <title>Только между нами</title>
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 <div id="loader" class="loader">
@@ -19,7 +19,7 @@
   <div class="count-badge"><b id="playerCount">2</b><span>игрока</span></div>
   <div id="playersList" class="players-list"></div>
   <button class="add-player" id="addPlayer" aria-label="Добавить игрока">+</button>
-  <button class="primary" id="startSetup">Начать игру <span>↗</span></button>
+  <button class="primary" id="startSetup"><span class="btn-label">Начать игру</span><span class="btn-icon">↗</span></button>
 </section>
 
 <section id="settingsView" class="view">
@@ -39,7 +39,7 @@
     <button class="count-btn" data-count="75">75</button>
     <button class="count-btn" data-count="100">100</button>
   </div>
-  <button class="primary bottom-button" id="launchGame">Запустить игру <span>→</span></button>
+  <button class="primary bottom-button" id="launchGame"><span class="btn-label">Запустить игру</span><span class="btn-icon">→</span></button>
 </section>
 
 <section id="turnView" class="view">
@@ -47,9 +47,9 @@
   <div class="turn-meta"><span>Сейчас играет</span><span>Ход <b id="turnNumber">1</b></span></div>
   <h2 id="turnPlayer" class="turn-player"></h2>
   <div class="choice-grid">
-    <button class="choice-card" data-choice="truth"><span class="choice-symbol quote">“</span><b>Правда</b><small>Нажми, чтобы играть</small></button>
-    <button class="choice-card" data-choice="dare"><span class="choice-symbol bolt">ϟ</span><b>Действие</b><small>Нажми, чтобы играть</small></button>
-    <button class="choice-card random-card" data-choice="random"><span class="choice-symbol">⤨</span><b>Случайно</b><small>Нажми, чтобы играть</small></button>
+    <button class="choice-card" data-choice="truth"><span class="choice-symbol quote">“</span><span class="choice-title">Правда</span><span class="choice-subtitle">Нажми, чтобы играть</span></button>
+    <button class="choice-card" data-choice="dare"><span class="choice-symbol bolt">ϟ</span><span class="choice-title">Действие</span><span class="choice-subtitle">Нажми, чтобы играть</span></button>
+    <button class="choice-card random-card" data-choice="random"><span class="choice-symbol">⤨</span><span class="choice-title">Случайно</span><span class="choice-subtitle">Нажми, чтобы играть</span></button>
   </div>
 </section>
 
@@ -61,7 +61,7 @@
   <div class="question-text" id="questionText"></div>
   <div class="question-actions">
     <button class="secondary" id="replaceBtn">↻ &nbsp;Заменить</button>
-    <button class="primary next-button" id="nextQuestion">Далее <span>▶</span></button>
+    <button class="primary next-button" id="nextQuestion"><span class="btn-label">Далее</span><span class="btn-icon">▶</span></button>
   </div>
 </section>
 
@@ -70,10 +70,10 @@
     <div class="question-type">Готово</div>
     <h2>Ночь<br>удалась.</h2>
     <p id="finishText"></p>
-    <button class="primary" id="againBtn">Сыграть ещё <span>↻</span></button>
+    <button class="primary" id="againBtn"><span class="btn-label">Сыграть ещё</span><span class="btn-icon">↻</span></button>
   </div>
 </section>
 </main>
-<script src="app.js?v=12"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>

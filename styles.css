@@ -701,3 +701,37 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 .light-theme .admin-order-btn{background:#fff;border-color:#d5d2cc;color:#171717}
 .light-theme .loader-line{background:#ddd9d2}
 .light-theme .app{border-color:#ddd9d2}
+
+/* LIGHT THEME — readable admin note and add-question form */
+.light-theme .admin-note{
+  color:#55514b!important;
+}
+.light-theme .admin-add{
+  background:#fff!important;
+  color:#171717!important;
+  border-color:#d5d2cc!important;
+}
+.light-theme .admin-add-title{
+  color:#171717!important;
+}
+.light-theme .admin-add .admin-new-text{
+  color:#171717!important;
+  background:#fff!important;
+  border-color:#d5d2cc!important;
+}
+.light-theme .admin-add .admin-new-text::placeholder{
+  color:#8b8780!important;
+}
+.light-theme .admin-add .admin-select{
+  color:#171717!important;
+  background:#fff!important;
+  border-color:#d5d2cc!important;
+}
+.light-theme .admin-add .admin-check{
+  color:#171717!important;
+  background:#fff!important;
+  border-color:#d5d2cc!important;
+}
+.light-theme .admin-add .admin-check span{
+  color:#171717!important;
+}

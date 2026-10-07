@@ -179,3 +179,51 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
   margin-top:40px !important;
   margin-bottom:28px !important;
 }
+
+/* FINAL TURN HEADER LAYOUT */
+#turnView .turn-label{
+  margin-top:28px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:18px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+#turnView .turn-row{
+  width:100%;
+  margin-top:8px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:20px;
+}
+#turnView .turn-player{
+  margin:0 !important;
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+}
+#turnView .turn-number{
+  flex:0 0 auto;
+  color:var(--muted);
+  font-size:12px;
+  line-height:18px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  text-align:right;
+}
+#turnView .turn-number b{
+  display:inline;
+  margin:0 0 0 5px;
+  color:var(--milk);
+  font-size:23px;
+  font-weight:500;
+  line-height:24px;
+}
+#turnView .choice-grid{
+  margin-top:34px !important;
+}
+@media(max-width:370px){
+  #turnView .turn-row{gap:12px}
+  #turnView .turn-player{font-size:32px !important;line-height:36px !important}
+}

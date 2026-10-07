@@ -119,7 +119,7 @@ const cards=[
 const state={view:"home",players:["Эля","Никита"],mode:"classic",count:20,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
-const modeNames={classic:"Классика",spicy:"Остро",wild:"Дико",inferno:"Инферно"};
+const modeNames={classic:"Микс",spicy:"Романтика",wild:"Флирт",inferno:"Страсть"};
 
 function show(id){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));

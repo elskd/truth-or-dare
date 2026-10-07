@@ -355,15 +355,42 @@ function renderAdmin(){
   const modeGrid=$("adminModeGrid");
   const levelGrid=$("adminLevelGrid");
   const list=$("adminList");
+
   modeGrid.innerHTML=ADMIN_MODES.map(([id,name])=>
     '<button class="admin-tab '+(id===adminMode?"active":"")+'" data-admin-mode="'+id+'">'+name+'</button>'
   ).join("");
+
   levelGrid.innerHTML=[1,2,3,4,5].map(level=>
     '<button class="admin-tab '+(level===adminLevel?"active":"")+'" data-admin-level="'+level+'">Уровень '+level+'</button>'
   ).join("");
 
-  const questions=(questionBanks[adminMode]||[]).filter(q=>q.level===adminLevel);
-  list.innerHTML=questions.map((q,index)=>
+  const addModeOptions=ADMIN_MODES.map(([id,name])=>
+    '<option value="'+id+'" '+(id===adminMode?"selected":"")+'>'+name+'</option>'
+  ).join("");
+
+  list.innerHTML=
+    '<div class="admin-add">'+
+      '<div class="admin-add-title">Добавить вопрос</div>'+
+      '<select id="adminAddMode" class="admin-select">'+addModeOptions+'</select>'+
+      '<select id="adminAddLevel" class="admin-select">'+
+        [1,2,3,4,5].map(level=>'<option value="'+level+'" '+(level===adminLevel?"selected":"")+'>Уровень '+level+'</option>').join("")+
+      '</select>'+
+      '<select id="adminAddType" class="admin-select">'+
+        '<option value="truth">Правда</option>'+
+        '<option value="dare">Действие</option>'+
+      '</select>'+
+      '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
+      '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button>'+
+    '</div>';
+
+  const questions=(questionBanks[adminMode]||[])
+    .filter(q=>q.level===adminLevel)
+    .sort((a,b)=>{
+      const typeOrder={truth:0,dare:1,wild:2};
+      return (typeOrder[a.type]??9)-(typeOrder[b.type]??9);
+    });
+
+  list.innerHTML+=questions.map((q,index)=>
     '<div class="admin-card">'+
       '<div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-card-type">'+
       (q.type==="truth"?"Правда":q.type==="dare"?"Действие":"Дикая карта")+
@@ -377,14 +404,45 @@ function renderAdmin(){
     adminMode=b.dataset.adminMode;
     renderAdmin();
   });
+
   levelGrid.querySelectorAll("[data-admin-level]").forEach(b=>b.onclick=()=>{
     adminLevel=Number(b.dataset.adminLevel);
     renderAdmin();
   });
+
+  $("adminAddQuestion").onclick=()=>{
+    const text=$("adminNewQuestion").value.trim();
+    const mode=$("adminAddMode").value;
+    const level=Number($("adminAddLevel").value);
+    const type=$("adminAddType").value;
+
+    if(!text){
+      $("adminNewQuestion").focus();
+      return;
+    }
+
+    const allQuestions=ADMIN_MODES.flatMap(([id])=>questionBanks[id]||[]);
+    const nextId=allQuestions.reduce((max,q)=>Math.max(max,Number(q.id)||0),-1)+1;
+
+    if(!questionBanks[mode])questionBanks[mode]=[];
+    questionBanks[mode].push({
+      id:nextId,
+      type,
+      level,
+      text
+    });
+
+    saveQuestionBanks();
+    adminMode=mode;
+    adminLevel=level;
+    renderAdmin();
+  };
+
   list.querySelectorAll("[data-save-id]").forEach(b=>b.onclick=()=>{
     const id=Number(b.dataset.saveId);
     const area=list.querySelector('textarea[data-question-id="'+id+'"]');
     const q=(questionBanks[adminMode]||[]).find(x=>x.id===id);
+
     if(q && area){
       q.text=area.value.trim();
       saveQuestionBanks();
@@ -393,7 +451,6 @@ function renderAdmin(){
     }
   });
 }
-
 function escapeHtml(value){
   return String(value)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;")

@@ -422,6 +422,55 @@ function saveQuestionBank(){
   localStorage.setItem(QUESTION_BANK_KEY,JSON.stringify(questionBank));
 }
 
+function escapeHtml(value){
+  return String(value??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function repairDefaultQuestions(){
+  const defaults=makeDefaultQuestionBank();
+  let changed=false;
+
+  [1,2,3,4,5].forEach(level=>{
+    ADMIN_MODES.forEach(([mode])=>{
+      const hasLevelMode=questionBank.some(q=>
+        Number(q.level)===level &&
+        Array.isArray(q.modes) &&
+        q.modes.includes(mode) &&
+        String(q.text||"").trim()
+      );
+      if(!hasLevelMode){
+        defaults
+          .filter(q=>q.level===level)
+          .forEach(def=>{
+            const existing=questionBank.find(q=>
+              q.type===def.type &&
+              Number(q.level)===def.level &&
+              String(q.text||"").trim()===def.text
+            );
+            if(existing){
+              if(!Array.isArray(existing.modes))existing.modes=[];
+              if(!existing.modes.includes(mode))existing.modes.push(mode);
+              if(!existing.weights)existing.weights={classic:1,spicy:1,wild:1,inferno:1};
+              if(!existing.weights[mode])existing.weights[mode]=1;
+            }else{
+              questionBank.push({...def});
+            }
+            changed=true;
+          });
+      }
+    });
+  });
+
+  if(changed)saveQuestionBank();
+}
+
+repairDefaultQuestions();
+
 function getActiveQuestions(){
   return questionBank;
 }

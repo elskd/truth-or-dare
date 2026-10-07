@@ -116,10 +116,10 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:25,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],funny:false,explicit:false,count:25,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
-const modeNames={classic:"Микс",spicy:"Веселье",wild:"Романтика",inferno:"18+"};
+
 
 function show(id){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
@@ -161,13 +161,18 @@ function renderPlayers(){
 
 function setupDeck(){
   state.deck=getActiveQuestions()
-    .filter(q=>q.text.trim() && q.modes.includes(state.mode))
+    .filter(q=>{
+      if(!q.text.trim())return false;
+      if(q.funny && !state.funny)return false;
+      if(q.explicit && !state.explicit)return false;
+      return true;
+    })
     .map(q=>({
       type:q.type,
       level:Number(q.level),
       text:q.text,
       gender:q.gender||"both",
-      weight:Number((q.weights&&q.weights[state.mode])||1),
+      weight:q.explicit?3:(q.funny?2:1),
       used:false
     }))
     .sort((a,b)=>a.level-b.level);
@@ -272,18 +277,19 @@ const launchGameButton=$("launchGame");
 if(launchGameButton){
   launchGameButton.onclick=()=>{
     if(!validPlayers())return;
-    const activeMode=document.querySelector(".mode-card.active");
     const activeCount=document.querySelector(".count-btn.active");
-    if(activeMode)state.mode=activeMode.dataset.mode;
     if(activeCount)state.count=Number(activeCount.dataset.count);
     setupDeck();
     show("rulesView");
   };
 }
 
-if(document.querySelectorAll(".mode-card").length)document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
+document.querySelectorAll(".option-card").forEach(b=>b.onclick=()=>{
+  const key=b.dataset.option;
+  state[key]=!state[key];
+  b.classList.toggle("active",state[key]);
+  const mark=b.querySelector("span");
+  if(mark)mark.textContent=state[key]?"●":"○";
 });
 
 if(document.querySelectorAll(".count-btn").length)document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
@@ -328,8 +334,10 @@ function makeDefaultQuestionBank(){
     level:Number(c[1]),
     gender:"both",
     text:c[2],
-    modes:["classic","spicy","wild","inferno"],
-    weights:{classic:1,spicy:1,wild:1,inferno:1}
+    modes:["classic"],
+    weights:{classic:1,spicy:1,wild:1,inferno:1},
+    funny:false,
+    explicit:false
   }));
 }
 
@@ -345,13 +353,15 @@ function migrateQuestionBank(){
           level:Math.min(5,Math.max(1,Number(q.level)||1)),
           gender:["both","female","male"].includes(q.gender)?q.gender:"both",
           text:String(q.text||"").trim(),
-          modes:Array.isArray(q.modes)&&q.modes.length?q.modes.filter(m=>ADMIN_MODES.some(([id])=>id===m)):ADMIN_MODES.map(([id])=>id),
+          modes:["classic"],
           weights:{
             classic:Number(q.weights?.classic)||1,
             spicy:Number(q.weights?.spicy)||1,
             wild:Number(q.weights?.wild)||1,
             inferno:Number(q.weights?.inferno)||1
-          }
+          },
+          funny:q.funny===true,
+          explicit:q.explicit===true
         }));
       if(normalized.length>0){
         const hasQuestionsForMode=ADMIN_MODES.every(([mode])=>
@@ -396,8 +406,10 @@ function migrateQuestionBank(){
               level:normalized.level,
               gender:normalized.gender,
               text:normalized.text,
-              modes:[],
-              weights:{classic:1,spicy:1,wild:1,inferno:1}
+              modes:["classic"],
+              weights:{classic:1,spicy:1,wild:1,inferno:1},
+              funny:false,
+              explicit:false
             };
             map.set(key,existing);
           }

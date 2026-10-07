@@ -602,3 +602,55 @@ button{appearance:none;-webkit-appearance:none;cursor:pointer;-webkit-tap-highli
 #rulesView .page-title{
   margin:0 0 32px !important;
 }
+
+
+/* SIMPLE QUESTION OPTIONS */
+.option-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.option-card{
+  position:relative;
+  min-height:118px;
+  padding:22px 18px;
+  border:1px solid #303030;
+  border-radius:22px;
+  background:#111;
+  color:var(--milk);
+  text-align:left;
+}
+.option-card b{
+  display:block;
+  font-size:18px;
+  line-height:23px;
+  font-weight:500;
+  margin-bottom:8px;
+}
+.option-card small{
+  display:block;
+  max-width:135px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:18px;
+}
+.option-card span{
+  position:absolute;
+  right:16px;
+  top:16px;
+  color:var(--muted);
+  font-size:17px;
+}
+.option-card.active{
+  border-color:#777;
+  background:#f2eee6;
+  color:#090909;
+}
+.option-card.active small,
+.option-card.active span{
+  color:#555;
+}
+@media(max-width:370px){
+  .option-grid{gap:8px}
+  .option-card{padding:18px 14px;min-height:112px}
+}

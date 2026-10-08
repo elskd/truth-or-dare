@@ -570,9 +570,7 @@ initAdminNavigation();function renderAdmin(){
   list.innerHTML+=questions.map((q,index)=>{
     const selectedWeight=q.weights?.classic??1;
     return '<div class="admin-card" draggable="true" data-drag-id="'+q.id+'"><div class="admin-card-head"><span class="admin-card-num">Вопрос '+(index+1)+'</span><span class="admin-order-buttons"><button type="button" class="admin-order-btn" data-move-up="'+q.id+'">↑</button><button type="button" class="admin-order-btn" data-move-down="'+q.id+'">↓</button></span><span class="admin-card-type">'+(q.type==="truth"?"Правда":"Действие")+'</span></div>'+
-      '<div class="admin-card-label">Режимы</div><div class="admin-check-grid question-modes">'+
-      ADMIN_MODES.map(([id,name])=>'<label class="admin-check"><input type="checkbox" data-mode-toggle="'+id+'" data-question="'+q.id+'" '+(q.modes.includes(id)?"checked":"")+'><span>'+name+'</span></label>').join("")+
-      '</div><div class="admin-card-label">Вес в режиме '+modeNames[adminMode]+'</div>'+
+      '<div class="admin-card-label">Вес вопроса</div>'+
       '<select class="admin-select" data-weight-id="'+q.id+'"><option value="1" '+(selectedWeight===1?"selected":"")+'>1 · обычный</option><option value="2" '+(selectedWeight===2?"selected":"")+'>2 · чаще</option><option value="3" '+(selectedWeight===3?"selected":"")+'>3 · сильно чаще</option><option value="4" '+(selectedWeight===4?"selected":"")+'>4 · очень часто</option><option value="guaranteed" '+(selectedWeight==="guaranteed"?"selected":"")+'>Обязательно · выпадет</option></select>'+
       '<select class="admin-select admin-question-gender" data-gender-id="'+q.id+'"><option value="both" '+((q.gender||"both")==="both"?"selected":"")+'>Для обоих</option><option value="female" '+(q.gender==="female"?"selected":"")+'>Для девушек</option><option value="male" '+(q.gender==="male"?"selected":"")+'>Для парней</option></select>'+
       '<textarea data-question-id="'+q.id+'">'+escapeHtml(q.text)+'</textarea><div class="admin-actions"><button class="admin-save" data-save-id="'+q.id+'">Сохранить</button><button class="admin-delete" data-delete-id="'+q.id+'">Удалить</button></div></div>';
@@ -584,7 +582,7 @@ initAdminNavigation();function renderAdmin(){
     const text=$("adminNewQuestion").value.trim(), level=Number($("adminAddLevel").value), type=$("adminAddType").value, gender=$("adminAddGender").value;
     if(!text){$("adminNewQuestion").focus();return}
     questionBank.push({id:getNextQuestionId(),type,level,gender,text,modes:["classic","spicy","wild","inferno"],weights:{classic:1,spicy:1,wild:1,inferno:1},order:{classic:999999,spicy:999999,wild:999999,inferno:999999}});
-    normalizeQuestionOrder(questionBank);saveQuestionBank();adminMode=modes[0];adminLevel=level;renderAdmin();
+    normalizeQuestionOrder(questionBank);saveQuestionBank();adminLevel=level;renderAdmin();
   };
 
 
@@ -596,10 +594,10 @@ initAdminNavigation();function renderAdmin(){
     if(!draggedId)return;
     const cards=[...list.querySelectorAll("[data-drag-id]")];
     const orderedIds=cards.map(card=>Number(card.dataset.dragId));
-    const items=questionBank.filter(q=>Number(q.level)===adminLevel&&q.modes.includes(adminMode));
+    const items=questionBank.filter(q=>Number(q.level)===adminLevel);
     orderedIds.forEach((id,i)=>{
       const q=items.find(x=>x.id===id);
-      if(q){if(!q.order)q.order={};q.order[adminMode]=i+1;}
+      if(q){if(!q.order)q.order={};q.order.classic=i+1;}
     });
     normalizeQuestionOrder(questionBank);
     saveQuestionBank();

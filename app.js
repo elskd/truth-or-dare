@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:100,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:25,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 
@@ -206,21 +206,13 @@ function selectQuestionsForLevel(source,quota){
 }
 
 function setupDeck(){
-  state.count=100;
-  const quota=20;
-  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes("classic"));
-
-  state.deck=[];
-  for(let level=1;level<=5;level++){
-    const source=all.filter(q=>Number(q.level)===level);
-    const selected=selectQuestionsForLevel(source,quota);
-    state.deck.push(...selected);
-  }
-
+  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+  const quota=state.count;
+  state.deck=selectQuestionsForLevel(all,quota);
   state.played=0;
   state.turn=0;
   state.current=null;
-  state.currentLevel=1;
+  state.currentLevel=null;
 }
 
 function validPlayers(){
@@ -253,24 +245,13 @@ function pick(choice){
   if(!remaining.length){finish();return;}
 
   const playerGender=state.playerGenders[state.turn%state.players.length]||"female";
-  const eligible=remaining.filter(c=>
-    c.gender==="both" || c.gender===playerGender
-  );
+  const eligible=remaining.filter(c=>c.gender==="both" || c.gender===playerGender);
   if(!eligible.length){finish();return;}
 
-  // Levels are strictly sequential: all questions from level 1,
-  // then all from level 2, and so on.
-  const currentLevel=Math.min(...eligible.map(c=>c.level));
-  state.currentLevel=currentLevel;
-
-  let pool=eligible.filter(c=>c.level===currentLevel);
+  let pool=eligible;
   if(choice==="truth" || choice==="dare"){
     const typed=pool.filter(c=>c.type===choice);
-    if(!typed.length){
-      // The selected deck guarantees both types when the bank has them.
-      // Never jump to another level or substitute the opposite type.
-      return;
-    }
+    if(!typed.length)return;
     pool=typed;
   }
 
@@ -280,7 +261,7 @@ function pick(choice){
 
   $("questionPlayer").textContent=state.players[state.turn%state.players.length];
   $("questionProgress").textContent=String(state.played+1).padStart(2,"0")+" / "+state.count;
-  $("questionLevel").textContent="УРОВЕНЬ "+next.level;
+  $("questionLevel").textContent="";
   $("questionType").textContent=next.type==="truth"?"ПРАВДА":"ДЕЙСТВИЕ";
   $("questionText").textContent=next.text;
   show("questionView");
@@ -301,7 +282,7 @@ function replaceQuestion(){
 
 function finish(){
   show("finishView");
-  $("finishText").textContent="100 вопросов · 5 уровней";
+  $("finishText").textContent=state.count+" вопросов · "+modeNames[state.mode];
 }
 
 $("startSetup").onclick=()=>{
@@ -341,23 +322,31 @@ const launchGameButton=$("launchGame");
 if(launchGameButton){
   launchGameButton.onclick=()=>{
     if(!validPlayers())return;
-    state.mode="classic";
-    state.count=100;
-    const quota=20;
-    const available=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes("classic"));
-    const missing=[];
-    for(let level=1;level<=5;level++){
-      const amount=available.filter(q=>Number(q.level)===level).length;
-      if(amount<quota)missing.push("Уровень "+level+": "+amount+" из "+quota);
-    }
-    if(missing.length){
-      alert("Недостаточно вопросов для полной игры.\\n\\n"+missing.join("\\n"));
+    const activeMode=document.querySelector(".mode-card.active");
+    const activeCount=document.querySelector(".count-btn.active");
+    if(activeMode)state.mode=activeMode.dataset.mode;
+    if(activeCount)state.count=Number(activeCount.dataset.count);
+
+    const available=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+    if(available.length<state.count){
+      alert("В выбранном режиме недостаточно вопросов.\\n\\nДоступно: "+available.length+"\\nНужно: "+state.count);
       return;
     }
+
     setupDeck();
     show("rulesView");
   };
 }
+
+if(document.querySelectorAll(".mode-card").length)document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+});
+
+if(document.querySelectorAll(".count-btn").length)document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+});
 
 document.querySelectorAll(".choice-card").forEach(b=>b.onclick=()=>pick(b.dataset.choice));
 $("nextQuestion").onclick=nextQuestion;

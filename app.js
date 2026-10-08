@@ -647,7 +647,7 @@ function upgradeLevel4SexualQuestions(){
   if(localStorage.getItem(FIX_KEY)!=="1"){
     let changed=false;
     questionBank.forEach(q=>{
-      if(Number(q.level)===4 && /\\\\u[0-9a-f]{4}/i.test(String(q.text||""))){
+      if(Number(q.level)===4 && /\\u[0-9a-f]{4}/i.test(String(q.text||""))){
         q.text=decode(q.text);
         changed=true;
       }

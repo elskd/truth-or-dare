@@ -487,7 +487,7 @@ let adminLevel=1;
 function makeDefaultQuestionBank(){
   return cards.concat(BALANCE_CARDS).map((c,i)=>({
     id:i,
-    type:c[0],
+    type:c[0]==="dare"?"dare":"truth",
     level:Number(c[1]),
     gender:"both",
     text:c[2],

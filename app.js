@@ -86,7 +86,16 @@ const cards=[
 ["truth",5,"Расскажи о своём самом сокровенном сексуальном желании, которым готов(а) поделиться."],
 ["truth",5,"Какой момент между вами сильнее всего тебя возбуждал?"],
 ["truth",5,"Какой формат интимной близости тебе больше всего хочется попробовать вместе?"],
-["truth",5,"Что ты больше всего хочешь получать от партнёра во время интимной близости?"],
+["truth",5,"Какая твоя самая смелая фантазия о вас двоих, которой ты готов(а) поделиться?"],
+["truth",5,"Какой сценарий между вами тебе хотелось бы однажды попробовать?"],
+["truth",5,"Что в партнёре сильнее всего будит твоё желание?"],
+["truth",5,"Какое желание тебе было бы особенно волнительно попросить партнёра исполнить?"],
+["truth",5,"Что тебе хочется почувствовать от партнёра в самый страстный момент?"],
+["truth",5,"Какой вариант близости между вами кажется тебе самым возбуждающим?"],
+["truth",5,"Какую свою фантазию тебе сложнее всего было бы произнести вслух?"],
+["truth",5,"Что партнёр может сделать одним взглядом, чтобы ты сразу почувствовал(а) сильное влечение?"],
+["truth",5,"Какое желание ты бы хотел(а) однажды исполнить вместе с партнёром?"],
+["truth",5,"Если бы между вами сегодня не было никаких ограничений кроме взаимного согласия, чего бы тебе хотелось?"],["truth",5,"Что ты больше всего хочешь получать от партнёра во время интимной близости?"],
 ["truth",5,"Назови три вещи, которые сильнее всего тебя возбуждают в партнёре."],
 ["truth",5,"Какая часть прелюдии тебе нравится больше всего?"],
 ["truth",5,"Какую свою фантазию ты был(а) бы готов(а) однажды воплотить вместе?"],
@@ -204,14 +213,14 @@ const BALANCE_CARDS=[
 ["dare",4,"Скажи партнёру, какой его/её жест или взгляд действует на тебя сильнее всего."],
 ["dare",4,"Поцелуй партнёра в место, которое ты обычно не выбираешь для поцелуя."],
 
-["dare",5,"Скажи партнёру на ухо самую смелую мысль о нём/ней, которую готов(а) произнести вслух."],
-["dare",5,"Расскажи партнёру, чего тебе хочется от него/неё после окончания игры."],
-["dare",5,"Поцелуй партнёра там, где тебе особенно хочется почувствовать его/её близость."],
-["dare",5,"Пусть партнёр выберет место, куда ты хочешь получить поцелуй, и сделайте это."],
-["dare",5,"Сядь к партнёру максимально близко и скажи, что сейчас сильнее всего тебя заводит."],
-["dare",5,"Закрой глаза и позволь партнёру выбрать одно нежное прикосновение, которое тебе хочется получить."],
-["dare",5,"Скажи партнёру одну фантазию о вас двоих, которую ты раньше стеснялся(ась) озвучить."],
-["dare",5,"Поцелуй партнёра так, чтобы после этого вам обоим было сложно сразу вернуться к игре."],
+
+
+
+
+
+
+
+
 ["dare",5,"Попроси партнёра показать одним жестом, чего ему/ей хочется прямо сейчас."],
 ["dare",5,"Скажи партнёру, какая его/её часть тела сильнее всего притягивает твой взгляд."],
 ["dare",5,"Прижмись к партнёру и прошепчи ему/ей, что бы ты хотел(а) сделать после финальной карточки."],
@@ -312,13 +321,21 @@ function selectQuestionsForLevel(source,quota){
 }
 
 function setupDeck(){
-  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
-  const quota=state.count;
-  state.deck=selectQuestionsForLevel(all,quota);
+  const quota=state.count/5;
+  const all=getActiveQuestions().filter(q=>q.text.trim());
+  state.deck=[];
+  for(let level=1;level<=5;level++){
+    const source=all.filter(q=>Number(q.level)===level);
+    const truths=source.filter(q=>q.type==="truth");
+    const dares=source.filter(q=>q.type==="dare");
+    const selectedTruths=selectQuestionsForLevel(truths,Math.ceil(quota/2));
+    const selectedDares=selectQuestionsForLevel(dares,Math.floor(quota/2));
+    state.deck.push(...selectedTruths,...selectedDares);
+  }
   state.played=0;
   state.turn=0;
   state.current=null;
-  state.currentLevel=null;
+  state.currentLevel=1;
 }
 
 function validPlayers(){
@@ -333,7 +350,7 @@ function openTurn(){
 }
 
 function getQuestionOrder(q,mode){const n=Number(q.order&&q.order[mode]);return Number.isFinite(n)?n:999999;}
-function normalizeQuestionOrder(bank){ADMIN_MODES.forEach(([mode])=>{for(let level=1;level<=5;level++){const list=bank.filter(q=>Number(q.level)===level&&q.modes?.includes(mode)).sort((x,y)=>getQuestionOrder(x,mode)-getQuestionOrder(y,mode)||Number(x.id)-Number(y.id));list.forEach((q,i)=>{if(!q.order)q.order={};q.order[mode]=i+1});}});return bank;}
+function normalizeQuestionOrder(bank){ADMIN_MODES.forEach(([mode])=>{for(let level=1;level<=5;level++){const list=bank.filter(q=>Number(q.level)===level&&q.modes?.includes(mode)).sort((x,y)=>(x.type==="truth"?0:1)-(y.type==="truth"?0:1)||getQuestionOrder(x,mode)-getQuestionOrder(y,mode)||Number(x.id)-Number(y.id));list.forEach((q,i)=>{if(!q.order)q.order={};q.order[mode]=i+1});}});return bank;}
 function weightedPick(items){
   const guaranteed=items.filter(q=>q.weight==="guaranteed" || Number(q.weight)===999999);
   if(guaranteed.length)return guaranteed[Math.floor(Math.random()*guaranteed.length)];
@@ -388,7 +405,7 @@ function replaceQuestion(){
 
 function finish(){
   show("finishView");
-  $("finishText").textContent=state.count+" вопросов · "+modeNames[state.mode];
+  $("finishText").textContent=state.count+" вопросов · 5 уровней";
 }
 
 $("startSetup").onclick=()=>{
@@ -660,7 +677,7 @@ initAdminNavigation();function renderAdmin(){
     '<textarea id="adminNewQuestion" class="admin-new-text" placeholder="Напиши новый вопрос..."></textarea>'+
     '<button class="admin-save admin-add-btn" id="adminAddQuestion">Добавить вопрос</button></div>';
 
-  const questions=questionBank.filter(q=>Number(q.level)===adminLevel).sort((a,b)=>getQuestionOrder(a,"classic")-getQuestionOrder(b,"classic")||Number(a.id)-Number(b.id));
+  const questions=questionBank.filter(q=>Number(q.level)===adminLevel).sort((a,b)=>(a.type==="truth"?0:1)-(b.type==="truth"?0:1)||getQuestionOrder(a,"classic")-getQuestionOrder(b,"classic")||Number(a.id)-Number(b.id));
 
   list.innerHTML+=questions.map((q,index)=>{
     const selectedWeight=q.weights?.classic??1;

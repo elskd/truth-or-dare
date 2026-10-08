@@ -642,14 +642,18 @@ repairDefaultQuestions();
 
 function upgradeLevel4SexualQuestions(){
   const KEY="truthDareLevel4SexualV1";
-  const FIX_KEY="truthDareLevel4UnicodeV1";
+  const FIX_KEY="truthDareLevel4UnicodeV2";
   const decode=s=>s.replace(/\\u([0-9a-f]{4})/gi,(_,h)=>String.fromCharCode(parseInt(h,16)));
   if(localStorage.getItem(FIX_KEY)!=="1"){
     let changed=false;
+    const decodeUnicodeText=value=>String(value||"").replace(/\\u([0-9a-f]{4})/gi,(_,hex)=>String.fromCharCode(parseInt(hex,16)));
     questionBank.forEach(q=>{
-      if(Number(q.level)===4 && /\\u[0-9a-f]{4}/i.test(String(q.text||""))){
-        q.text=decode(q.text);
-        changed=true;
+      if(Number(q.level)===4){
+        const fixed=decodeUnicodeText(q.text);
+        if(fixed!==q.text){
+          q.text=fixed;
+          changed=true;
+        }
       }
     });
     if(changed)saveQuestionBank();

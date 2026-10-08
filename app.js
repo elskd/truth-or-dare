@@ -116,7 +116,7 @@ const cards=[
 ["wild",5,"Финал: если бы сегодня можно было исполнить одно желание между вами, что бы ты выбрал(а)?"]
 ];
 
-const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:25,turn:0,played:0,deck:[],current:null};
+const state={view:"home",players:["Никита","Эля"],playerGenders:["male","female"],mode:"classic",count:100,turn:0,played:0,deck:[],current:null};
 
 const $=id=>document.getElementById(id);
 
@@ -206,8 +206,9 @@ function selectQuestionsForLevel(source,quota){
 }
 
 function setupDeck(){
-  const quota=state.count/5;
-  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+  state.count=100;
+  const quota=20;
+  const all=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes("classic"));
 
   state.deck=[];
   for(let level=1;level<=5;level++){
@@ -300,7 +301,7 @@ function replaceQuestion(){
 
 function finish(){
   show("finishView");
-  $("finishText").textContent=modeNames[state.mode]+" · "+state.count+" вопросов";
+  $("finishText").textContent="100 вопросов · 5 уровней";
 }
 
 $("startSetup").onclick=()=>{
@@ -340,37 +341,23 @@ const launchGameButton=$("launchGame");
 if(launchGameButton){
   launchGameButton.onclick=()=>{
     if(!validPlayers())return;
-    const activeMode=document.querySelector(".mode-card.active");
-    const activeCount=document.querySelector(".count-btn.active");
-    if(activeMode)state.mode=activeMode.dataset.mode;
-    if(activeCount)state.count=Number(activeCount.dataset.count);
-
-    const quota=state.count/5;
-    const available=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes(state.mode));
+    state.mode="classic";
+    state.count=100;
+    const quota=20;
+    const available=getActiveQuestions().filter(q=>q.text.trim() && q.modes.includes("classic"));
     const missing=[];
     for(let level=1;level<=5;level++){
       const amount=available.filter(q=>Number(q.level)===level).length;
       if(amount<quota)missing.push("Уровень "+level+": "+amount+" из "+quota);
     }
     if(missing.length){
-      alert("В выбранном режиме недостаточно вопросов для выбранного количества.\\n\\n"+missing.join("\\n"));
+      alert("Недостаточно вопросов для полной игры.\\n\\n"+missing.join("\\n"));
       return;
     }
-
     setupDeck();
     show("rulesView");
   };
 }
-
-if(document.querySelectorAll(".mode-card").length)document.querySelectorAll(".mode-card").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".mode-card").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-});
-
-if(document.querySelectorAll(".count-btn").length)document.querySelectorAll(".count-btn").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".count-btn").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-});
 
 document.querySelectorAll(".choice-card").forEach(b=>b.onclick=()=>pick(b.dataset.choice));
 $("nextQuestion").onclick=nextQuestion;
